@@ -156,6 +156,8 @@ const PUBLIC_PATHS = new Set([
   "/admin/login",
   "/auth/callback",
   "/verify-document",
+  // Supabase calls this to have us send auth emails (signature-checked).
+  "/api/auth/send-email",
   "/sw.js",
   "/manifest.webmanifest",
   "/offline.html",

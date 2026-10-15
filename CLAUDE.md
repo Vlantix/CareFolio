@@ -119,9 +119,11 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
 - **Menus** live in `src/lib/menus.ts` (server only) so staff addresses
   never reach a patient's browser. Add a menu item only when its page
   exists.
-- **Email vendor:** Resend, approved by the team, used as Supabase's
-  custom SMTP for the login codes. Any Resend API key is server-only —
-  never a `NEXT_PUBLIC_` variable, never committed.
+- **Email vendor:** Resend, approved by the team. Supabase's Send Email
+  Hook calls `/api/auth/send-email` (signature-checked), which sends the
+  code or link through Resend (`src/lib/email.ts`). `RESEND_API_KEY` and
+  `SEND_EMAIL_HOOK_SECRET` are server-only — never `NEXT_PUBLIC_`, never
+  committed.
 - **No service-role key.** Data users must not reach is protected with
   security definer functions and admin-only RLS policies instead.
 - **Before saying a ticket is done:** run `npm run build`, then do a UI

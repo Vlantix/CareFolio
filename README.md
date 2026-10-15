@@ -45,6 +45,9 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `VERIFY_COOKIE_SECRET` | **Yes** — server only | Signs the "passed the email code" cookie. At least 32 random characters | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
 | `NEXT_PUBLIC_SITE_URL` | No | The live address, used in share-link QR codes and the stamp on released PDFs | e.g. `https://hackathon-f1-forge.vercel.app` |
 | `NEXT_PUBLIC_FACILITY_NAME` | No | The partner hospital's name shown on screens | e.g. `Partner Hospital` |
+| `RESEND_API_KEY` | **Yes** — server only | Sends login codes and reset links through Resend | Resend → API Keys ("Sending access" is enough) |
+| `RESEND_FROM_EMAIL` | No (server only) | Sender address. On `…@resend.dev`, Resend only delivers to the Resend account owner's email — verify a domain to email anyone | e.g. `codes@yourdomain.com` |
+| `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Proves emails requests really come from Supabase | Shown when you create the Send Email Hook (step 4) |
 
 **Never** add the Supabase `service_role` key or any `sb_secret_…` key to
 this project — they bypass Row Level Security. CareFolio doesn't need
@@ -81,10 +84,13 @@ All demo data is **fake**. Never put real patient data in a demo.
 - **URL Configuration:** Site URL = your live URL; add
   `<live URL>/auth/callback` and `http://localhost:3000/auth/callback`
   to Redirect URLs (used by "Forgot password").
-- **SMTP Settings:** connect **Resend** so codes reach real inboxes
-  (host `smtp.resend.com`, port `465`, user `resend`, password = your
-  Resend API key, sender on a domain you verified in Resend). Supabase's
-  built-in sender only allows a few emails an hour.
+- **Hooks → Send Email hook (HTTPS):** URL
+  `<live URL>/api/auth/send-email`. Generate the secret, put it in
+  `SEND_EMAIL_HOOK_SECRET` (Vercel + `.env.local`) and redeploy. From then
+  on Supabase doesn't send auth emails itself: it hands each code or link
+  to our endpoint, which sends it through **Resend** with your
+  `RESEND_API_KEY`. (No SMTP setup needed.) Refused emails show their
+  reason in Vercel → Logs.
 
 ### 5. Make the first staff account
 
@@ -132,8 +138,10 @@ Every push to `main` deploys to Vercel.
 
 - **Works locally but not on Vercel:** run `npm run build` locally, and
   check the Vercel environment variables (then redeploy).
-- **No login code arrives:** check the SMTP (Resend) setup and the spam
-  folder; Supabase's built-in sender is heavily rate-limited.
+- **No login code arrives:** check spam; then Vercel → Logs for
+  "send-email hook". "Testing emails to your own email address" means the
+  sender is still `…@resend.dev` — use the Resend account's own email, or
+  verify a domain in Resend.
 - **"Profile missing" / empty screens after login:** a SQL file in
   `supabase/sql/` hasn't been run, or was run out of order.
 - **`npm audit` warnings:** they're in the development toolchain only —
