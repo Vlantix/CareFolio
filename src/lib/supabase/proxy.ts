@@ -14,12 +14,16 @@ import { MFA_COOKIE, isSessionLive, readMfaToken } from "@/lib/mfa";
  * Pages check again with requireMember()/requireAdmin(), so a mistake
  * here can't expose data. RLS in the database is the last line.
  */
+// The publishable key, under either of Supabase's names for it.
+const SUPABASE_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   // Not connected to Supabase yet (no .env.local / Vercel variables):
   // let public pages load instead of crashing the whole site.
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_KEY) {
     // ...but the staff area still answers with a plain 404, never an error
     // page that would hint it exists.
     const p = request.nextUrl.pathname;
@@ -29,7 +33,7 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    SUPABASE_KEY!,
     {
       cookies: {
         getAll() {
