@@ -189,17 +189,20 @@ On the LIVE URL:
 - [ ] Only fake patient data is used.
 
 ## Out of scope
-- Record types other than lab results (medical certificate,
-  prescription copy, discharge summary, medical abstract)
-- A separate records list or timeline screen (released results open
-  from My requests)
+Agreed with the team in phases 3-5, these are now IN scope: all five
+record types, the records timeline, health summary, notifications page,
+urgent requests with working-day due dates, and the protected view
+(blur + watermark). Still out of scope:
 - ID photo upload and OCR
 - Caregivers linking themselves, in-app consent forms, permission
   toggles
 - Share links and QR codes, the doctor view, verifying a document
-- Health summary, reminders, the notifications inbox, correction
-  requests
-- Admin audit page, reports, ID upload with OCR, adding patients from
-  the app
-- Urgent requests and due dates
-- Screenshot blur and the watermark
+  (phase 6)
+- Reminders and correction requests
+- Admin audit page, reports, adding patients from the app
+
+## Decisions to revisit
+- Request status notices go to the requester only; document releases go
+  to everyone who can view the patient.
+- Any caregiver allowed to request for a patient can answer the records
+  office's question on that patient's request.

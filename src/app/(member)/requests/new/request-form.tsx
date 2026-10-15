@@ -14,7 +14,7 @@ import { fieldErrors, formToObject } from "@/lib/validation";
 import { createRequest, type NewRequestState } from "../actions";
 
 const SELECT =
-  "h-12 w-full min-w-0 rounded-field border-[1.5px] border-input bg-card px-2.5 text-[15px] text-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none";
+  "h-12 w-full min-w-0 rounded-field border-[1.5px] border-input bg-card px-2.5 text-ui text-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none";
 
 export function RequestForm({ facility, disabled }: { facility: string; disabled: boolean }) {
   const [state, action, pending] = useActionState<NewRequestState, FormData>(createRequest, {});
@@ -98,7 +98,7 @@ export function RequestForm({ facility, disabled }: { facility: string; disabled
               ))}
             </select>
             {errors.purpose && (
-              <p id="purpose-message" className="text-[13px] font-semibold text-danger-foreground">
+              <p id="purpose-message" className="text-caption font-semibold text-danger-foreground">
                 {errors.purpose}
               </p>
             )}
@@ -107,8 +107,8 @@ export function RequestForm({ facility, disabled }: { facility: string; disabled
 
         <label className="flex cursor-pointer items-center gap-3 rounded-field border border-border bg-card px-3.5 py-3">
           <span className="flex flex-1 flex-col">
-            <strong className="text-[15px]">Mark as urgent</strong>
-            <span className="text-[13px] text-muted-foreground">Same-day review — a reason is required</span>
+            <strong className="text-ui">Mark as urgent</strong>
+            <span className="text-caption text-muted-foreground">Same-day review — a reason is required</span>
           </span>
           <input
             type="checkbox"
@@ -129,7 +129,7 @@ export function RequestForm({ facility, disabled }: { facility: string; disabled
               aria-describedby={errors.urgent_reason ? "urgent-message" : undefined}
             />
             {errors.urgent_reason && (
-              <p id="urgent-message" className="text-[13px] font-semibold text-danger-foreground">
+              <p id="urgent-message" className="text-caption font-semibold text-danger-foreground">
                 {errors.urgent_reason}
               </p>
             )}

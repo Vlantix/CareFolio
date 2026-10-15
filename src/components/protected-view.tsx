@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logHidden, logSummaryPrinted, type HiddenReason } from "@/app/actions/records";
+import { stampTime } from "@/lib/dates";
 
 /*
  * PROTECTED VIEW — read this before relying on it.
@@ -127,6 +128,9 @@ export function ProtectedView({
   return (
     <PrintContext.Provider value={{ printWatermarked }}>
       <div className={cn("relative", className)}>
+        {/* overflow-hidden is load-bearing: the watermark layer is much
+            bigger than the content and would otherwise make phones scroll
+            sideways. */}
         <div
           className={cn(
             "cf-protected relative overflow-hidden select-none motion-safe:transition-[filter] motion-safe:duration-200",
@@ -173,7 +177,7 @@ export function ProtectedView({
               ref={keepButton}
               type="button"
               onClick={() => setHidden(null)}
-              className="h-12 rounded-field bg-card px-[22px] text-[15px] font-bold text-navy hover:bg-primary-soft"
+              className="h-12 rounded-field bg-card px-[22px] text-ui font-bold text-navy hover:bg-primary-soft"
             >
               Tap to keep viewing
             </button>
@@ -185,12 +189,5 @@ export function ProtectedView({
 }
 
 function watermarkTime() {
-  return new Intl.DateTimeFormat("en-PH", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(new Date());
+  return stampTime(new Date());
 }

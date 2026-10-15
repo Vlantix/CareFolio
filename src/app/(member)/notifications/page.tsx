@@ -5,28 +5,22 @@ import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { dayKey, shortDate, timeOfDay } from "@/lib/dates";
 import { markAllRead } from "./actions";
 
 export const metadata = { title: "Notifications · CareFolio" };
 
-type Notice = { id: string; title: string; body: string; link: string | null; read_at: string | null; created_at: string };
+type Notice = { id: string; kind: string | null; title: string; body: string; link: string | null; read_at: string | null; created_at: string };
 
-const MANILA = "Asia/Manila";
-function dayKey(d: Date) {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: MANILA }).format(d);
-}
-function when(iso: string, today: boolean) {
-  return new Intl.DateTimeFormat("en-PH", today
-    ? { hour: "numeric", minute: "2-digit", timeZone: MANILA }
-    : { month: "short", day: "numeric", timeZone: MANILA }).format(new Date(iso));
-}
+const when = (iso: string, today: boolean) => (today ? timeOfDay(iso) : shortDate(iso));
 
 /** Icon + colours per kind of notice (design/MNotifications.html). */
-function look(title: string) {
-  if (title === "Document released") return { Icon: FileCheck2, box: "bg-primary text-primary-foreground" };
-  if (title === "More information needed" || title === "Request declined")
+function look(n: Pick<Notice, "kind" | "title">) {
+  if (n.kind === "document_released") return { Icon: FileCheck2, box: "bg-primary text-primary-foreground" };
+  if (n.kind === "new_login") return { Icon: MonitorSmartphone, box: "bg-info text-info-foreground" };
+  // Request updates: a question or a decline needs attention.
+  if (n.title === "More information needed" || n.title === "Request declined")
     return { Icon: MessageCircleQuestion, box: "bg-attention text-attention-icon" };
-  if (title === "New login") return { Icon: MonitorSmartphone, box: "bg-info text-info-foreground" };
   return { Icon: Bell, box: "bg-primary-soft text-primary" };
 }
 
@@ -37,7 +31,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   const supabase = await createClient();
   const { data } = await supabase
     .from("notifications")
-    .select("id, title, body, link, read_at, created_at")
+    .select("id, kind, title, body, link, read_at, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
   const notices = (data ?? []) as Notice[];
@@ -65,20 +59,20 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
         }
       />
       {error === "1" && <FormAlert>That didn&apos;t work. Please try again.</FormAlert>}
-      {groups.length === 0 && <p className="text-[15px] text-muted-foreground">No notifications yet.</p>}
+      {groups.length === 0 && <p className="text-ui text-muted-foreground">No notifications yet.</p>}
 
       {groups.map((g) => (
         <section key={g.label} className="flex flex-col gap-2.5">
-          <h2 className="text-[13px] font-bold tracking-[0.05em] text-muted-foreground uppercase">{g.label}</h2>
+          <h2 className="text-caption font-bold tracking-[0.05em] text-muted-foreground uppercase">{g.label}</h2>
           {g.items.map((n) => {
-            const { Icon, box } = look(n.title);
+            const { Icon, box } = look(n);
             const inner = (
               <>
                 <span className={cn("flex size-10 flex-none items-center justify-center rounded-field", box)}>
                   <Icon size={20} strokeWidth={1.8} aria-hidden />
                 </span>
-                <span className="flex flex-1 flex-col gap-[3px]">
-                  <strong className="text-[15px]">{n.title}</strong>
+                <span className="flex flex-1 flex-col gap-0.75">
+                  <strong className="text-ui">{n.title}</strong>
                   <span className="text-sm leading-[1.4] text-muted-foreground">{n.body}</span>
                   <span className="text-xs text-muted-foreground">{when(n.created_at, g.label === "Today")}</span>
                 </span>

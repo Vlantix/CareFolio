@@ -68,11 +68,13 @@ export function expectedRelease(from: Date, urgent: boolean): Date {
   return d;
 }
 
-/** "Oct 16" in Philippine time. */
-export function shortDate(value: Date | string) {
-  return new Intl.DateTimeFormat("en-PH", {
-    month: "short",
-    day: "numeric",
-    timeZone: "Asia/Manila",
-  }).format(new Date(value));
+/**
+ * "Latest lab values": the newest result for each test. Expects rows
+ * already ordered newest first.
+ */
+export function latestPerTest<T extends { test_name: string }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  return rows.filter((r) => !seen.has(r.test_name) && seen.add(r.test_name));
 }
+
+export { shortDate } from "@/lib/dates";

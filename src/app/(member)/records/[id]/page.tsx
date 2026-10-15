@@ -23,11 +23,11 @@ export default async function DocumentPage({ params }: PageProps<"/records/[id]"
       <div className="flex items-center gap-3">
         <BackButton href="/records" label="Back to records" />
         <h1 className="flex-1 font-heading text-xl font-bold">{doc.title}</h1>
-        <span className="flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-[5px] text-xs font-bold text-primary-deep">
+        <span className="flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1.25 text-xs font-bold text-primary-deep">
           <ShieldCheck size={14} aria-hidden /> Protected view
         </span>
       </div>
-      <p className="text-[13px] text-muted-foreground">
+      <p className="text-caption text-muted-foreground">
         {doc.facility} · Released document dated {shortDate(doc.record_date)} · Code{" "}
         <strong className="text-primary-deep">{doc.verification_code}</strong>
       </p>
@@ -42,13 +42,13 @@ export default async function DocumentPage({ params }: PageProps<"/records/[id]"
         <PdfCanvas src={`/api/documents/${doc.id}/view`} title={doc.title} />
       </ProtectedView>
 
-      <p className="text-[13px] leading-[1.45] text-muted-foreground">
+      <p className="text-caption leading-[1.45] text-muted-foreground">
         This view blurs when you switch apps or press Print Screen, and every copy is
         watermarked with your name and time.
       </p>
       <a
         href={`/api/documents/${doc.id}/download`}
-        className="flex h-[52px] items-center justify-center rounded-button bg-primary font-semibold text-primary-foreground no-underline hover:bg-primary-hover hover:text-primary-foreground md:self-start md:px-8"
+        className="flex h-13 items-center justify-center rounded-button bg-primary font-semibold text-primary-foreground no-underline hover:bg-primary-hover hover:text-primary-foreground md:self-start md:px-8"
       >
         Download PDF
       </a>

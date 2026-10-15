@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { cn } from "@/lib/utils";
+import { timeOfDay } from "@/lib/dates";
 import { sendCode, verifyCode, type VerifyState } from "./actions";
 
 const COOLDOWN = 60;
@@ -97,11 +98,7 @@ export function OtpForm({
   const lockedUntil = state.lockedUntil ?? lockedOnArrival;
   const locked = useLockedUntil(lockedUntil);
   const lockedText = lockedUntil
-    ? `Too many wrong codes. You can try again at ${new Intl.DateTimeFormat("en-PH", {
-        hour: "numeric",
-        minute: "2-digit",
-        timeZone: "Asia/Manila",
-      }).format(new Date(lockedUntil))}.`
+    ? `Too many wrong codes. You can try again at ${timeOfDay(lockedUntil)}.`
     : undefined;
   const mm = Math.floor(secondsLeft / 60);
   const ss = String(secondsLeft % 60).padStart(2, "0");

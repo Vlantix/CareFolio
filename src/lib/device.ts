@@ -34,14 +34,7 @@ export function deviceLabel(userAgent: string | null) {
   return browser ?? os ?? "Unknown device";
 }
 
-/** "3:42 PM" in Philippine time. */
-export function phTime(date: Date | string) {
-  return new Intl.DateTimeFormat("en-PH", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(new Date(date));
-}
+export { timeOfDay as phTime } from "@/lib/dates";
 
 /** "2 min 05 s" / "45 s" for wait messages. */
 export function waitText(seconds: number) {

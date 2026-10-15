@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { PatientSwitcher } from "@/components/patient-switcher";
 import { BackButton } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,17 +9,14 @@ import { getActivePatient } from "@/lib/patients";
 import { createClient } from "@/lib/supabase/server";
 import { DOC_TYPES, shortDate, type DocType } from "@/lib/records";
 import type { DocumentRow } from "@/lib/documents";
+import { monthYear } from "@/lib/dates";
 
 export const metadata = { title: "Records · CareFolio" };
 
 const FIELD =
-  "h-11 min-w-0 rounded-full border-[1.5px] border-input bg-card px-3.5 text-[13px] font-semibold text-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none";
+  "h-11 min-w-0 rounded-full border-[1.5px] border-input bg-card px-3.5 text-caption font-semibold text-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none";
 
-function monthLabel(date: string) {
-  return new Intl.DateTimeFormat("en-PH", { month: "long", year: "numeric", timeZone: "Asia/Manila" }).format(
-    new Date(date),
-  );
-}
+const monthLabel = (date: string) => monthYear(date);
 
 // design/MRecords.html
 export default async function RecordsPage({ searchParams }: PageProps<"/records">) {
@@ -32,7 +30,7 @@ export default async function RecordsPage({ searchParams }: PageProps<"/records"
   const doctor = one("doctor");
   const facility = one("facility");
 
-  const { active } = await getActivePatient();
+  const { patients, active } = await getActivePatient();
   const supabase = await createClient();
   const { data } = active
     ? await supabase
@@ -62,8 +60,10 @@ export default async function RecordsPage({ searchParams }: PageProps<"/records"
     <main className="flex flex-col gap-3.5 px-5 pt-5 pb-6 md:max-w-3xl md:px-10 md:py-8">
       <div className="flex items-center gap-3">
         <BackButton href="/home" label="Back to home" />
-        <h1 className="font-heading text-[22px] font-bold">Records</h1>
+        <h1 className="font-heading text-title font-bold">Records</h1>
       </div>
+
+      {active && <PatientSwitcher patients={patients} activeId={active.id} />}
 
       {/* A plain GET form: filters live in the address, so Back works. */}
       <form className="flex flex-col gap-2.5" role="search">
@@ -122,9 +122,9 @@ export default async function RecordsPage({ searchParams }: PageProps<"/records"
         </div>
       </form>
 
-      {!active && <p className="text-[15px] text-muted-foreground">No patient linked yet.</p>}
+      {!active && <p className="text-ui text-muted-foreground">No patient linked yet.</p>}
       {active && docs.length === 0 && (
-        <p className="text-[15px] text-muted-foreground">
+        <p className="text-ui text-muted-foreground">
           {all.length === 0 ? "No released documents yet." : "No records match these filters."}
         </p>
       )}
@@ -133,19 +133,19 @@ export default async function RecordsPage({ searchParams }: PageProps<"/records"
         const inMonth = docs.filter((d) => monthLabel(d.record_date) === m);
         return (
           <section key={m} className="flex flex-col gap-3">
-            <h2 className="mt-1 text-[13px] font-bold tracking-[0.05em] text-muted-foreground uppercase">{m}</h2>
+            <h2 className="mt-1 text-caption font-bold tracking-[0.05em] text-muted-foreground uppercase">{m}</h2>
             {inMonth.map((d, i) => (
               <div key={d.id} className="flex gap-3">
                 <div className="flex w-3.5 flex-col items-center" aria-hidden>
-                  <span className="mt-[18px] size-3 rounded-full bg-primary" />
+                  <span className="mt-4.5 size-3 rounded-full bg-primary" />
                   {i < inMonth.length - 1 && <span className="w-0.5 flex-1 bg-border" />}
                 </div>
                 <article className="flex flex-1 flex-col gap-2 rounded-tile border border-border bg-card p-3.5">
                   <div className="flex justify-between gap-2">
-                    <strong className="text-[15px]">{d.title}</strong>
+                    <strong className="text-ui">{d.title}</strong>
                     <span className="text-xs text-muted-foreground">{shortDate(d.record_date)}</span>
                   </div>
-                  <span className="text-[13px] text-muted-foreground">
+                  <span className="text-caption text-muted-foreground">
                     {[d.doctor, d.facility].filter(Boolean).join(" · ")}
                   </span>
                   <span className="text-xs font-semibold text-primary-deep">

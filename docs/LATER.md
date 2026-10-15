@@ -14,7 +14,6 @@ stays small enough to actually ship by Session 3.
   public "verify a document" page
 - Correction requests
 - Admin audit page, reports, account approval with ID upload and OCR
-- Urgent requests and working-day due dates
 
 ## Parked during /to-spec
 

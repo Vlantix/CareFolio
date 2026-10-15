@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthState } from "@/lib/auth";
+import { MAX_PDF_BYTES } from "@/lib/pdf-stamp";
 
 export type DocumentRow = {
   id: string;
@@ -31,4 +32,22 @@ export async function loadDocument(id: string) {
     .maybeSingle<DocumentRow>();
   if (!data) return null;
   return { doc: data, profile, supabase };
+}
+
+/**
+ * Fetch the file through a 60-second signed link (made with the user's
+ * own login, so the storage rules apply) and refuse anything too big.
+ */
+export async function fetchDocumentFile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  filePath: string,
+) {
+  const { data: signed, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 60);
+  if (error || !signed) return null;
+  const res = await fetch(signed.signedUrl);
+  if (!res.ok) return null;
+  if (Number(res.headers.get("content-length") ?? 0) > MAX_PDF_BYTES) return null;
+  const bytes = await res.arrayBuffer();
+  if (bytes.byteLength > MAX_PDF_BYTES) return null;
+  return bytes;
 }

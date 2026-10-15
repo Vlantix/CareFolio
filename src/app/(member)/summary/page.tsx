@@ -1,4 +1,5 @@
 import { Lock } from "lucide-react";
+import { PatientSwitcher } from "@/components/patient-switcher";
 import { BackButton } from "@/components/ui/page-header";
 import { Logo } from "@/components/ui/logo";
 import { ProtectedView } from "@/components/protected-view";
@@ -6,7 +7,8 @@ import { requireMember } from "@/lib/auth";
 import { getActivePatient } from "@/lib/patients";
 import { createClient } from "@/lib/supabase/server";
 import { maskEmail } from "@/lib/device";
-import { shortDate } from "@/lib/records";
+import { latestPerTest, shortDate } from "@/lib/records";
+import { printedAt } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { PrintButton } from "./print-button";
 
@@ -22,21 +24,21 @@ function age(birthdate: string | null) {
 }
 
 const SECTION = "flex flex-col rounded-tile border border-border bg-card px-3.5 py-3";
-const HEADING = "mb-1 text-[13px] font-bold tracking-[0.05em] text-muted-foreground uppercase";
+const HEADING = "mb-1 text-caption font-bold tracking-[0.05em] text-muted-foreground uppercase";
 
 // design/MSummary.html — read-only, from facility records.
 export default async function SummaryPage() {
   const profile = await requireMember();
-  const { active } = await getActivePatient();
+  const { patients, active } = await getActivePatient();
 
   if (!active) {
     return (
       <main className="flex flex-col gap-4 px-5 pt-5 pb-6 md:px-10 md:py-8">
         <div className="flex items-center gap-3">
           <BackButton href="/home" label="Back to home" />
-          <h1 className="font-heading text-[22px] font-bold">Health summary</h1>
+          <h1 className="font-heading text-title font-bold">Health summary</h1>
         </div>
-        <p className="text-[15px] text-muted-foreground">No patient linked yet.</p>
+        <p className="text-ui text-muted-foreground">No patient linked yet.</p>
       </main>
     );
   }
@@ -51,20 +53,21 @@ export default async function SummaryPage() {
   const allDates = [allergies, meds, diagnoses, labs].flatMap((r) => (r.data ?? []).map((x) => x.record_date as string));
   const updated = allDates.sort().at(-1);
   const years = age(active.birthdate);
-  const printed = new Intl.DateTimeFormat("en-PH", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Manila",
-  }).format(new Date());
+  const printed = printedAt(new Date());
+  const latestLabs = latestPerTest(labs.data ?? []);
 
   return (
     <main className="flex flex-col gap-3.5 px-5 pt-5 pb-6 md:max-w-3xl md:px-10 md:py-8 print:p-0">
       <div className="flex items-center gap-3 print:hidden">
         <BackButton href="/home" label="Back to home" />
-        <h1 className="flex-1 font-heading text-[22px] font-bold">Health summary</h1>
-        <span className="flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-[5px] text-xs font-bold text-primary-deep">
+        <h1 className="flex-1 font-heading text-title font-bold">Health summary</h1>
+        <span className="flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-1.25 text-xs font-bold text-primary-deep">
           <Lock size={12} aria-hidden /> Read-only, from facility records
         </span>
+      </div>
+
+      <div className="print:hidden">
+        <PatientSwitcher patients={patients} activeId={active.id} />
       </div>
 
       <ProtectedView
@@ -94,7 +97,7 @@ export default async function SummaryPage() {
             <h2 className={cn(HEADING, "text-attention-foreground")}>Allergies</h2>
             {(allergies.data ?? []).length === 0 && <span className="text-sm">No known allergies on record.</span>}
             {(allergies.data ?? []).map((a) => (
-              <div key={a.id} className="flex flex-wrap justify-between gap-2 py-1 text-[15px]">
+              <div key={a.id} className="flex flex-wrap justify-between gap-2 py-1 text-ui">
                 <strong>
                   {a.allergen}
                   {a.reaction && ` — ${a.reaction}`}
@@ -107,6 +110,7 @@ export default async function SummaryPage() {
 
           <section className={SECTION}>
             <h2 className={HEADING}>Current medications</h2>
+            {(meds.data ?? []).length === 0 && <span className="py-1 text-sm">None on record.</span>}
             {(meds.data ?? []).map((m, i, arr) => (
               <div key={m.id} className={cn("flex flex-wrap justify-between gap-2 py-2 text-sm", i < arr.length - 1 && "border-b border-divider")}>
                 <strong>{m.name}</strong>
@@ -119,19 +123,23 @@ export default async function SummaryPage() {
 
           <section className={cn(SECTION, "gap-2")}>
             <h2 className={HEADING}>Diagnoses</h2>
+            {(diagnoses.data ?? []).length === 0 && <span className="text-sm">None on record.</span>}
             <div className="flex flex-wrap gap-1.5">
               {(diagnoses.data ?? []).map((d) => (
-                <span key={d.id} className="rounded-lg bg-background px-2.5 py-1.5 text-[13px] font-semibold">
-                  {d.name} <span className="font-normal text-muted-foreground">· {shortDate(d.record_date)}</span>
+                <span key={d.id} className="rounded-lg bg-background px-2.5 py-1.5 text-caption font-semibold">
+                  {d.name}{" "}
+                  <span className="font-normal text-muted-foreground">
+                    · {shortDate(d.record_date)} · {d.source}
+                  </span>
                 </span>
               ))}
             </div>
-            {diagnoses.data?.[0] && <span className="text-xs text-muted-foreground">Source: {diagnoses.data[0].source}</span>}
           </section>
 
           <section className={SECTION}>
             <h2 className={HEADING}>Latest lab values</h2>
-            {(labs.data ?? []).map((l, i, arr) => (
+            {latestLabs.length === 0 && <span className="py-1 text-sm">None on record.</span>}
+            {latestLabs.map((l, i, arr) => (
               <div key={l.id} className={cn("flex flex-wrap justify-between gap-2 py-2 text-sm", i < arr.length - 1 && "border-b border-divider")}>
                 <strong>{l.test_name}</strong>
                 <span className="text-muted-foreground">

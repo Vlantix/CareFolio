@@ -117,6 +117,11 @@
   --radius-hero: 24px;
   --radius-hero-lg: 28px;
 
+  /* Text sizes the designs use that Tailwind's scale doesn't have. */
+  --text-caption: 13px;
+  --text-ui: 15px;
+  --text-title: 22px;
+
   /* Fonts are loaded in layout.tsx with next/font. */
   --font-sans: var(--font-figtree), system-ui, sans-serif;
   --font-heading: var(--font-schibsted), system-ui, sans-serif;

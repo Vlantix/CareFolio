@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
 import { createClient } from "@/lib/supabase/server";
 import { revokeDevice, revokeOtherDevices } from "@/app/actions/devices";
+import { dayAndTime } from "@/lib/dates";
 
 type Session = {
   id: string;
@@ -17,15 +18,7 @@ function twelveHoursAgo() {
   return new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
 }
 
-function when(iso: string) {
-  return new Intl.DateTimeFormat("en-PH", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(new Date(iso));
-}
+const when = (iso: string) => dayAndTime(iso);
 
 /**
  * The list on the Devices page, for patients, caregivers and staff.
@@ -46,7 +39,7 @@ export async function DevicesList({ current, error }: { current: string | null; 
 
   return (
     <>
-      <p className="text-[15px] text-muted-foreground">
+      <p className="text-ui text-muted-foreground">
         Where your account is logged in right now. If you don&apos;t recognise a
         device, log it out.
       </p>
@@ -61,8 +54,8 @@ export async function DevicesList({ current, error }: { current: string | null; 
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-field bg-primary-soft text-primary-deep">
                   <MonitorSmartphone size={22} strokeWidth={1.8} aria-hidden />
                 </span>
-                <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
-                  <span className="flex flex-wrap items-center gap-2 text-[15px] font-bold">
+                <span className="flex min-w-0 flex-1 flex-col gap-0.75">
+                  <span className="flex flex-wrap items-center gap-2 text-ui font-bold">
                     {s.device_label}
                     {isThis && (
                       <span className="rounded-full bg-primary-soft px-2.5 py-[3px] text-xs font-bold text-primary-deep">
@@ -70,7 +63,7 @@ export async function DevicesList({ current, error }: { current: string | null; 
                       </span>
                     )}
                   </span>
-                  <span className="text-[13px] text-muted-foreground">
+                  <span className="text-caption text-muted-foreground">
                     Logged in {when(s.created_at)} · last active {when(s.last_seen_at)}
                   </span>
                 </span>

@@ -10,7 +10,7 @@ export function PrintButton() {
     <button
       type="button"
       onClick={printWatermarked}
-      className="flex h-[52px] items-center justify-center gap-2 rounded-button border-[1.5px] border-input bg-card font-semibold text-foreground hover:bg-primary-soft"
+      className="flex h-13 items-center justify-center gap-2 rounded-button border-[1.5px] border-input bg-card font-semibold text-foreground hover:bg-primary-soft"
     >
       <Printer size={18} aria-hidden /> Print PDF
     </button>

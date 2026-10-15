@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Draws a PDF as page images on <canvas> (pdfjs-dist), instead of
  * embedding a raw PDF link that a browser would offer to save. `src` is
- * our own server route, which checks access and redirects to a
- * 60-second signed link.
+ * our own server route, which checks access, writes the audit row and
+ * returns a copy stamped with the viewer's name.
  */
 export function PdfCanvas({ src, title }: { src: string; title: string }) {
   const holder = useRef<HTMLDivElement>(null);
@@ -21,7 +21,6 @@ export function PdfCanvas({ src, title }: { src: string; title: string }) {
           "pdfjs-dist/build/pdf.worker.min.mjs",
           import.meta.url,
         ).toString();
-        // Same-site cookies reach our route; the signed link needs none.
         const pdf = await pdfjs.getDocument({ url: src }).promise;
         const el = holder.current;
         if (!el || cancelled) return;

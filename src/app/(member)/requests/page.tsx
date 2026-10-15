@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { PatientSwitcher } from "@/components/patient-switcher";
 import { FormAlert } from "@/components/ui/form-alert";
 import { BackButton } from "@/components/ui/page-header";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -37,7 +38,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
   await requireMember();
   const { tab: tabParam, sent } = await searchParams;
   const tab = TABS.find((t) => t.key === tabParam) ?? TABS[0];
-  const { active } = await getActivePatient();
+  const { patients, active } = await getActivePatient();
 
   const supabase = await createClient();
   const { data } = active
@@ -56,7 +57,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
     <main className="flex flex-col gap-3.5 px-5 pt-5 pb-6 md:max-w-3xl md:px-10 md:py-8">
       <div className="flex items-center gap-3">
         <BackButton href="/home" label="Back to home" />
-        <h1 className="flex-1 font-heading text-[22px] font-bold">Requests</h1>
+        <h1 className="flex-1 font-heading text-title font-bold">Requests</h1>
         <Link
           href="/requests/new"
           aria-label="New request"
@@ -65,6 +66,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
           <Plus size={20} strokeWidth={2} aria-hidden />
         </Link>
       </div>
+      {active && <PatientSwitcher patients={patients} activeId={active.id} />}
       {sent === "1" && <FormAlert tone="info">Request sent to the records office.</FormAlert>}
 
       {/* Tabs are links, so each list has its own address. */}
@@ -91,9 +93,9 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
         })}
       </nav>
 
-      {!active && <p className="text-[15px] text-muted-foreground">No patient linked yet.</p>}
+      {!active && <p className="text-ui text-muted-foreground">No patient linked yet.</p>}
       {active && rows.length === 0 && (
-        <p className="text-[15px] text-muted-foreground">Nothing here yet.</p>
+        <p className="text-ui text-muted-foreground">Nothing here yet.</p>
       )}
 
       {rows.map((r) => {
@@ -112,7 +114,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
                 <strong className="text-base">
                   {DOC_TYPES[r.doc_type]} — {r.detail}
                 </strong>
-                <span className="text-[13px] text-muted-foreground">
+                <span className="text-caption text-muted-foreground">
                   {r.code} · {r.purpose}
                 </span>
               </span>
@@ -141,13 +143,13 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
                     <span
                       key={i}
                       className={cn(
-                        "h-[5px] rounded-[9px]",
+                        "h-1.25 rounded-[9px]",
                         i === current ? "bg-accent" : i < done ? "bg-primary" : "bg-border",
                       )}
                     />
                   ))}
                 </div>
-                <div className="flex justify-between text-[13px] text-muted-foreground">
+                <div className="flex justify-between text-caption text-muted-foreground">
                   <span>Submitted {shortDate(r.created_at)}</span>
                   {r.status === "released" ? (
                     <Link href="/records" className="font-bold">

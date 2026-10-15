@@ -10,16 +10,15 @@ import { requireMember } from "@/lib/auth";
 import { getActivePatient } from "@/lib/patients";
 import { createClient } from "@/lib/supabase/server";
 import { FACILITY_NAME } from "@/lib/facility";
-import { DOC_TYPES, shortDate, type DocType, type RequestStatus } from "@/lib/records";
+import { DOC_TYPES, latestPerTest, shortDate, type DocType, type RequestStatus } from "@/lib/records";
+import { hourNow, longDay } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/logout";
 
 export const metadata = { title: "Home · CareFolio" };
 
 function greeting() {
-  const hour = Number(
-    new Intl.DateTimeFormat("en-PH", { hour: "numeric", hour12: false, timeZone: "Asia/Manila" }).format(new Date()),
-  );
+  const hour = hourNow();
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
@@ -48,12 +47,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const { error } = await searchParams;
   const { patients, active } = await getActivePatient();
   const firstName = profile.full_name.split(/\s+/)[0];
-  const today = new Intl.DateTimeFormat("en-PH", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    timeZone: "Asia/Manila",
-  }).format(new Date());
+  const today = longDay(new Date());
 
   const supabase = await createClient();
   const { count: unread } = await supabase
@@ -81,8 +75,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           .from("lab_values")
           .select("id, test_name, value, unit, record_date, source")
           .eq("patient_id", active.id)
-          .order("record_date", { ascending: false })
-          .limit(4),
+          .order("record_date", { ascending: false }),
         supabase
           .from("documents")
           .select("id", { count: "exact", head: true })
@@ -103,7 +96,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           {initials(profile.full_name)}
         </span>
         <h1 className="flex flex-1 flex-col">
-          <span className="text-[13px] font-normal text-muted-foreground">{greeting()},</span>
+          <span className="text-caption font-normal text-muted-foreground">{greeting()},</span>
           <span className="font-heading text-xl font-bold">{firstName}</span>
         </h1>
         <LiveBell userId={profile.id} initialCount={unread ?? 0} />
@@ -145,17 +138,17 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           </div>
 
           <div className="flex flex-wrap gap-5">
-            <section className="flex flex-[1_1_320px] flex-col gap-3.5 rounded-panel bg-primary p-[18px] text-primary-foreground md:gap-4 md:p-6">
+            <section className="flex flex-[1_1_320px] flex-col gap-3.5 rounded-panel bg-primary p-4.5 text-primary-foreground md:gap-4 md:p-6">
               <div className="flex flex-col gap-1">
-                <h2 className="font-heading text-xl font-bold md:text-[22px]">At the doctor?</h2>
-                <p className="text-sm text-on-primary-muted md:text-[15px]">
+                <h2 className="font-heading text-xl font-bold md:text-title">At the doctor?</h2>
+                <p className="text-sm text-on-primary-muted md:text-ui">
                   Show {whose} verified one-page summary in seconds.
                 </p>
               </div>
               {/* "Show QR" joins here when phase 6 builds /share. */}
               <Link
                 href="/summary"
-                className="flex h-12 items-center justify-center rounded-field bg-card px-5 text-[15px] font-bold text-primary-deep no-underline hover:bg-primary-soft hover:text-primary-deep md:self-start"
+                className="flex h-12 items-center justify-center rounded-field bg-card px-5 text-ui font-bold text-primary-deep no-underline hover:bg-primary-soft hover:text-primary-deep md:self-start"
               >
                 Summary
               </Link>
@@ -195,11 +188,11 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   href="/requests"
                   className="flex items-center gap-3 rounded-tile border border-border bg-card p-3.5 text-foreground no-underline hover:border-primary hover:text-foreground"
                 >
-                  <span className="flex flex-1 flex-col gap-[3px]">
-                    <span className="text-[15px] font-bold">
+                  <span className="flex flex-1 flex-col gap-0.75">
+                    <span className="text-ui font-bold">
                       {DOC_TYPES[r.doc_type]} — {r.detail}
                     </span>
-                    <span className="text-[13px] text-muted-foreground">
+                    <span className="text-caption text-muted-foreground">
                       {FACILITY_NAME}
                       {r.due_at && ` · Release by ${shortDate(r.due_at)}`}
                     </span>
@@ -228,10 +221,10 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
             <SummaryList
               title="Latest lab values"
               empty="No lab values on record."
-              rows={(labs?.data ?? []).map((l) => ({
+              rows={latestPerTest(labs?.data ?? []).slice(0, 4).map((l) => ({
                 id: l.id,
                 name: l.test_name,
-                detail: `${l.value}${l.unit ? ` ${l.unit}` : ""} · ${shortDate(l.record_date)}`,
+                detail: `${l.value}${l.unit ? ` ${l.unit}` : ""} · ${shortDate(l.record_date)} · ${l.source}`,
               }))}
               footer="Every value shows its date and facility."
             />
@@ -269,7 +262,7 @@ function SummaryList({
           <span className="text-right text-muted-foreground">{r.detail}</span>
         </div>
       ))}
-      {footer && <span className="pb-2.5 text-[13px] text-muted-foreground md:pb-0">{footer}</span>}
+      {footer && <span className="pb-2.5 text-caption text-muted-foreground md:pb-0">{footer}</span>}
     </Card>
   );
 }
