@@ -7,9 +7,9 @@ screen.
 
 **Blocked by:** None
 
-**Status:** todo
+**Status:** done
 
-- [ ] The existing Vercel deploy is confirmed working and the live URL
+- [x] The existing Vercel deploy is confirmed working and the live URL
       is at the top of the README
 - [x] Brand fonts load: Schibsted Grotesk for headings, Figtree for body
       text
@@ -27,4 +27,4 @@ screen.
 - [x] Touch targets are at least 44px, real button and label elements
       are used, and text passes WCAG AA contrast
 - [x] The page looks right at 360px, 390px and 1280px wide
-- [ ] Works on the live URL
+- [x] Works on the live URL
