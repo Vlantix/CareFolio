@@ -34,6 +34,15 @@ export function OtpForm({
     const result = await sendCode();
     setSending(false);
     if (result.error) setSendError(result.error);
+    // Nothing was sent (and no limit was hit): no timer, so they can try
+    // again straight away — and a reload sends again too.
+    if (result.error && result.waitSeconds === undefined) {
+      try {
+        sessionStorage.removeItem(SENT_KEY);
+      } catch {}
+      setSecondsLeft(0);
+      return;
+    }
     // The server says how long to wait when a limit is hit; otherwise
     // start the normal one-minute timer.
     const wait = result.waitSeconds ?? COOLDOWN;
