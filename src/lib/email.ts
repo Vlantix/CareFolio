@@ -5,8 +5,10 @@ import { Resend } from "resend";
 // Emails CareFolio sends: login codes and account links.
 //
 // Two ways to send (server-only secrets, never NEXT_PUBLIC_):
-//   1. Gmail — GMAIL_USER + GMAIL_APP_PASSWORD. Free, reaches ANY inbox
-//      (about 500 a day).
+//   1. Gmail — GMAIL_USER plus EITHER an App Password (GMAIL_APP_PASSWORD)
+//      OR Google OAuth (GMAIL_CLIENT_ID + GMAIL_CLIENT_SECRET +
+//      GMAIL_REFRESH_TOKEN, scope https://mail.google.com/). Free, reaches
+//      ANY inbox (about 500 a day).
 //   2. Resend — RESEND_API_KEY + RESEND_FROM_EMAIL. While the sender is
 //      on resend.dev, Resend only delivers to the Resend account owner's
 //      own inbox; it needs a verified domain to reach everyone.
@@ -25,16 +27,27 @@ function pickSender(): Sender {
   }
   const gmailUser = process.env.GMAIL_USER;
   const gmailPass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
-  if (forced === "gmail" && !(gmailUser && gmailPass)) {
-    throw new Error("EMAIL_PROVIDER is gmail, but GMAIL_USER or GMAIL_APP_PASSWORD is missing.");
+  const clientId = process.env.GMAIL_CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+  const gmailOAuth = Boolean(clientId && clientSecret && refreshToken);
+  const gmailReady = Boolean(gmailUser && (gmailOAuth || gmailPass));
+  if (forced === "gmail" && !gmailReady) {
+    throw new Error(
+      "EMAIL_PROVIDER is gmail, but GMAIL_USER plus GMAIL_APP_PASSWORD (or GMAIL_CLIENT_ID + GMAIL_CLIENT_SECRET + GMAIL_REFRESH_TOKEN) is missing.",
+    );
   }
-  if (forced === "gmail" || (!forced && gmailUser && gmailPass)) {
-    console.info("[email] using provider: gmail");
+  if (forced === "gmail" || (!forced && gmailReady)) {
+    console.info(`[email] using provider: gmail (${gmailOAuth ? "oauth" : "app password"})`);
     const transport = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
       secure: true,
-      auth: { user: gmailUser!, pass: gmailPass! },
+      // OAuth: nodemailer swaps the refresh token for a short-lived
+      // access token by itself.
+      auth: gmailOAuth
+        ? { type: "OAuth2", user: gmailUser!, clientId, clientSecret, refreshToken }
+        : { user: gmailUser!, pass: gmailPass! },
     });
     return async (to, subject, html, text) => {
       try {

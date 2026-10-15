@@ -48,6 +48,7 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `EMAIL_PROVIDER` | No (server only) | Optional: `gmail` or `resend` forces one sender. Empty = Gmail if set, else Resend | Test with `npm run test:email -- you@example.com` |
 | `GMAIL_USER` | No (server only) | The team Gmail that sends login codes. Free, reaches any inbox (~500/day). Used when set | e.g. `carefolio.codes@gmail.com` |
 | `GMAIL_APP_PASSWORD` | **Yes** — server only | 16-letter App Password for that Gmail (needs 2-Step Verification) | myaccount.google.com/apppasswords |
+| `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | **Yes** — server only | Instead of the App Password: Google OAuth for that Gmail. Used when all three are set | Google Cloud OAuth client + OAuth Playground (below) |
 | `RESEND_API_KEY` | **Yes** — server only | Alternative sender (used only if the Gmail pair isn't set) | Resend → API Keys ("Sending access" is enough) |
 | `RESEND_FROM_EMAIL` | No (server only) | Sender address. On `…@resend.dev`, Resend only delivers to the Resend account owner's email — verify a domain to email anyone | e.g. `codes@yourdomain.com` |
 | `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Optional. Only if reset-link emails go through the Send Email Hook | Shown when you create the hook (step 4) |
@@ -95,6 +96,22 @@ All demo data is **fake**. Never put real patient data in a demo.
 - **Hooks → Send Email hook (optional, password reset only):** URL
   `<live URL>/api/auth/send-email`, secret in `SEND_EMAIL_HOOK_SECRET`.
   Leave it off and Supabase sends reset links itself.
+
+### Getting a Gmail refresh token (only for Google OAuth)
+
+1. Google Cloud Console → **APIs & Services → Library**: enable **Gmail API**.
+2. **OAuth consent screen**: add `GMAIL_USER` as a test user — or, better,
+   **Publish app** (in "Testing" mode Google expires refresh tokens after
+   7 days and the codes stop sending).
+3. **Credentials → your OAuth client → Authorized redirect URIs**: add
+   `https://developers.google.com/oauthplayground`.
+4. Open https://developers.google.com/oauthplayground → ⚙ → tick **Use
+   your own OAuth credentials**, paste the client ID and secret.
+5. Step 1: enter scope `https://mail.google.com/` → **Authorize APIs** →
+   sign in as `GMAIL_USER`. Step 2: **Exchange authorization code for
+   tokens** → copy the **Refresh token** into `GMAIL_REFRESH_TOKEN`.
+6. `npm run test:email -- you@example.com` should say
+   `using provider: gmail (oauth)` and `"ok": true`.
 
 ### 5. Make the first staff account
 

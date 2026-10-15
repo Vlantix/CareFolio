@@ -126,7 +126,7 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   through a team Gmail (nodemailer, approved by the team) or, if not
   set, Resend (`src/lib/email.ts`). The optional Send Email Hook
   (`/api/auth/send-email`, signature-checked) is only for
-  password-reset links. `GMAIL_APP_PASSWORD`,
+  password-reset links. `GMAIL_APP_PASSWORD`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`,
   `RESEND_API_KEY` and `SEND_EMAIL_HOOK_SECRET` are server-only — never
   `NEXT_PUBLIC_`, never committed.
 - **No service-role key.** Data users must not reach is protected with
