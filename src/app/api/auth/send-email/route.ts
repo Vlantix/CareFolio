@@ -64,6 +64,9 @@ export async function POST(request: NextRequest) {
     return hookError(400, "Bad payload");
   }
   const { user, email_data: data } = payload;
+  // Pattern <event-type>/<entity-id>: one email per Supabase message,
+  // even if Supabase retries this call.
+  const idempotencyKey = `auth-email/${request.headers.get("webhook-id")}`;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   // Link emails go through Supabase's verify step, then on to redirect_to.
   const verifyLink = (hash: string, type: string) =>
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
       case "magiclink":
       case "signup":
       case "reauthentication":
-        result = await sendCodeEmail(user.email, data.token);
+        result = await sendCodeEmail(user.email, data.token, idempotencyKey);
         break;
       case "recovery":
         result = await sendLinkEmail(
@@ -87,6 +90,7 @@ export async function POST(request: NextRequest) {
           "Someone asked to reset your CareFolio password. If it was you, choose a new one:",
           verifyLink(data.token_hash, "recovery"),
           "Choose a new password",
+          idempotencyKey,
         );
         break;
       case "email_change":
@@ -97,6 +101,7 @@ export async function POST(request: NextRequest) {
           "Confirm this is your new email address for CareFolio:",
           verifyLink(data.token_hash_new || data.token_hash, "email_change"),
           "Confirm email",
+          idempotencyKey,
         );
         break;
       default:
@@ -107,6 +112,7 @@ export async function POST(request: NextRequest) {
           "Use this link to continue:",
           verifyLink(data.token_hash, data.email_action_type),
           "Continue",
+          idempotencyKey,
         );
     }
   } catch (e) {

@@ -12,7 +12,8 @@ import { Resend } from "resend";
 //      on resend.dev, Resend only delivers to the Resend account owner's
 //      own inbox; it needs a verified domain to reach everyone.
 
-type Sender = (to: string, subject: string, html: string, text: string) => Promise<SentResult>;
+/** `key` makes a retried send a no-op (Resend idempotency, 24 h). */
+type Sender = (to: string, subject: string, html: string, text: string, key?: string) => Promise<SentResult>;
 
 let sendVia: Sender | null = null;
 
@@ -43,8 +44,16 @@ function pickSender(): Sender {
   }
   const resend = new Resend(key);
   const sender = from.includes("<") ? from : `CareFolio <${from}>`;
-  return async (to, subject, html, text) => {
-    const { error } = await resend.emails.send({ from: sender, to, subject, html, text });
+  return async (to, subject, html, text, key) => {
+    const { error } = await resend.emails.send({
+      from: sender,
+      to: [to],
+      subject,
+      html,
+      text,
+      // Supabase may retry the hook; the same key never sends twice.
+      ...(key ? { idempotencyKey: key } : {}),
+    });
     return error ? { ok: false, error: `Resend: ${error.name}: ${error.message}` } : { ok: true };
   };
 }
@@ -71,13 +80,13 @@ If you didn't try to sign in, you can ignore it — your account is safe.</p>
 
 export type SentResult = { ok: true } | { ok: false; error: string };
 
-function deliver(to: string, subject: string, html: string, text: string): Promise<SentResult> {
+function deliver(to: string, subject: string, html: string, text: string, key?: string): Promise<SentResult> {
   sendVia ??= pickSender();
-  return sendVia(to, subject, html, text);
+  return sendVia(to, subject, html, text, key);
 }
 
 /** The 6-digit login / sign-up code. */
-export function sendCodeEmail(to: string, code: string) {
+export function sendCodeEmail(to: string, code: string, key?: string) {
   const digits = code.split("").join(" ");
   return deliver(
     to,
@@ -88,11 +97,20 @@ export function sendCodeEmail(to: string, code: string) {
 <p style="margin:0;padding:16px;border-radius:12px;background:#E3F1EF;text-align:center;font-size:32px;font-weight:800;letter-spacing:6px;color:#0B4A46">${escape(digits)}</p>`,
     ),
     `Your CareFolio login code is ${code}. Never share it. If you didn't try to sign in, ignore this email.`,
+    key,
   );
 }
 
 /** A link email (password reset, email change, …). */
-export function sendLinkEmail(to: string, subject: string, title: string, intro: string, url: string, button: string) {
+export function sendLinkEmail(
+  to: string,
+  subject: string,
+  title: string,
+  intro: string,
+  url: string,
+  button: string,
+  key?: string,
+) {
   return deliver(
     to,
     subject,
@@ -102,5 +120,6 @@ export function sendLinkEmail(to: string, subject: string, title: string, intro:
 <p style="margin:0"><a href="${escape(url)}" style="display:inline-block;padding:14px 22px;border-radius:12px;background:#0B6E69;color:#FFFFFF;font-weight:700;text-decoration:none">${escape(button)}</a></p>`,
     ),
     `${intro}\n\n${url}`,
+    key,
   );
 }
