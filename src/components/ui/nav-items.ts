@@ -1,4 +1,4 @@
-import { House, Inbox, Link2, List, MonitorSmartphone, type LucideIcon } from "lucide-react";
+import { FolderOpen, HeartPulse, House, Inbox, Link2, List, MonitorSmartphone, UserRound, type LucideIcon } from "lucide-react";
 
 // Shared by the client-side BottomNav and Sidebar. Holds NO menu
 // addresses: the menus themselves live in src/lib/menus.ts (server only),
@@ -10,6 +10,9 @@ export const navIcons = {
   inbox: Inbox,
   link: Link2,
   devices: MonitorSmartphone,
+  records: FolderOpen,
+  summary: HeartPulse,
+  profile: UserRound,
 } satisfies Record<string, LucideIcon>;
 
 export interface NavItem {

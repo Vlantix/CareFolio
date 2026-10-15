@@ -99,26 +99,34 @@ anywhere. Admins are set by hand in the Supabase dashboard.
   - Write: created automatically at sign-up, and never as admin. You may
     update only your own name and terms date. Only admins can change
     `role`, and a database trigger enforces that.
-- **patients**: id, hospital_no (unique, e.g. H-0001), full_name,
-  birthdate, sex.
-  - Read: admins, and accounts linked to that patient.
-  - Write: admins only. The fake demo patients are added by SQL.
-- **patient_links**: patient_id, profile_id, relationship (self or
-  caregiver), created_by, created_at.
-  - Read: your own links. Admins read all.
-  - Write: admins only.
-- **requests**: id, code (REQ-0001, auto-numbered), patient_id,
-  requester_id, test_name, test_date, purpose, status (submitted,
-  approved, declined or released), decline_reason, document_id,
-  created_at, updated_at.
-  - Read: accounts linked to that patient, and admins.
-  - Insert: a linked account, only for its own patients, with
-    requester_id set to itself and status set to submitted.
-  - Update: admins only.
-- **documents**: id, patient_id, request_id, title, record_date,
-  file_path, released_at, created_by.
-  - Read: accounts linked to that patient, and admins.
-  - Write: admins only.
+- **patients**: id, hospital_no (unique), full_name, birthdate, sex,
+  profile_id (the patient's own login, if any).
+  - Read: via `can_access_patient()` — admins, the patient themself, or
+    an active caregiver link with can_view. Write: admins only.
+- **caregiver_links**: patient_id, caregiver_id, relationship, consent_at,
+  status (pending / active / revoked), can_request, can_view, can_share.
+  - Read: your own links; admins all. Write: admins only.
+- **documents**: patient_id, type, title, facility, doctor, record_date,
+  file_path, verification_code (CF-XXXX-XXXX), released_at, created_by.
+  - Read: released documents of patients you can access. Write: admins.
+  - Files live in the private `documents` bucket; users only get them
+    through our server routes (60-second signed link for viewing; a
+    stamped copy for downloading).
+- **medications, allergies, diagnoses, lab_values**: patient_id, the
+  fields shown in the design, record_date, source, updated_at/by.
+  - Read: patients you can access. Write: admins only.
+- **requests**: code (REQ-0001), patient_id, requester_id, doc_type,
+  detail, purpose, is_urgent + urgent_reason, status (submitted /
+  under_review / info_requested / approved / released / declined),
+  due_at (3 working days, or end of today if urgent), info_question,
+  info_reply, decline_reason, document_id.
+  - Read: patients you can access. Create: only through
+    `create_request()` (active account + permission to request). Reply
+    to a question: `reply_to_info_request()`. Everything else: admins.
+- **notifications**: written by database triggers when a request's
+  status changes or a document is released (and on each new login).
+- **profiles.status**: pending until the records office checks the ID;
+  requests are only possible once active.
 - **audit_logs**: actor_id, action, patient_id, entity, entity_id,
   details, created_at.
   - Read: admins only.

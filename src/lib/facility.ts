@@ -1,9 +1,11 @@
 /**
  * The one partner hospital (docs/SPEC.md). The designs show
- * "[Partner facility]" — replace this with the real name once a records
- * office has agreed to take part.
+ * "[Partner facility]". Set NEXT_PUBLIC_FACILITY_NAME (in .env.local and
+ * Vercel) to the real name once a records office has agreed to take part.
+ * It is not a secret, so NEXT_PUBLIC_ is fine.
  */
-export const FACILITY_NAME = "the partner hospital";
+export const FACILITY_NAME =
+  process.env.NEXT_PUBLIC_FACILITY_NAME || "the partner hospital";
 
 /**
  * Data Protection Officer contact shown in the terms (Data Privacy Act,

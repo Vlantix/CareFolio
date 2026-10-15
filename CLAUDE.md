@@ -105,6 +105,12 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   `006-device-bound-access.sql` this also requires the device's
   session to be live, so logging a device out cuts its data access.
   Only `start_session()` uses the token-only `token_has_email_code()`.
+- **Patient data:** policies use `public.can_access_patient(patient_id)`
+  (plus `passed_email_code()`); the patient being viewed comes from
+  `getActivePatient()` (src/lib/patients.ts). Users never insert rows
+  directly — use the purpose-made functions (create_request, …).
+  Files: only via /api/documents/[id]/view (signed 60 s) and /download
+  (stamped). Wrap any record display in `<ProtectedView>`.
 - **Sign out with `scope: "local"`** (this device only); use
   `scope: "others"` only for "Log out all other devices".
 - **Every server action checks first:** admin actions start with

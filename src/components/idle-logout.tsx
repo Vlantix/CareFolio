@@ -62,7 +62,7 @@ export function IdleLogout({ staff = false }: { staff?: boolean }) {
   if (secondsLeft === null) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex print:hidden items-end justify-center bg-foreground/40 p-4 sm:items-center">
       <div
         role="alertdialog"
         aria-modal="true"

@@ -15,6 +15,9 @@ export async function LoginNotices({ devicesHref, error }: { devicesHref: string
     .from("notifications")
     .select("id, title, body")
     .is("read_at", null)
+    // Other notices live on the Notifications page; only security
+    // warnings get a banner here.
+    .eq("title", "New login")
     .order("created_at", { ascending: false })
     .limit(3);
 

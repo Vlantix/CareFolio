@@ -1,7 +1,18 @@
+import Link from "next/link";
 import { LogOut } from "lucide-react";
-import { requireMember } from "@/lib/auth";
-import { logout } from "@/app/actions/logout";
+import { Card } from "@/components/ui/card";
+import { StatusChip } from "@/components/ui/status-chip";
+import { buttonVariants } from "@/components/ui/button";
+import { LiveBell } from "@/components/live-bell";
 import { LoginNotices } from "@/components/login-notices";
+import { PatientSwitcher } from "@/components/patient-switcher";
+import { requireMember } from "@/lib/auth";
+import { getActivePatient } from "@/lib/patients";
+import { createClient } from "@/lib/supabase/server";
+import { FACILITY_NAME } from "@/lib/facility";
+import { DOC_TYPES, shortDate, type DocType, type RequestStatus } from "@/lib/records";
+import { cn } from "@/lib/utils";
+import { logout } from "@/app/actions/logout";
 
 export const metadata = { title: "Home · CareFolio" };
 
@@ -23,11 +34,19 @@ function initials(name: string) {
     .join("");
 }
 
+type RequestRow = {
+  id: string;
+  doc_type: DocType;
+  detail: string;
+  status: RequestStatus;
+  due_at: string | null;
+};
+
 // design/Home.html (mobile) and design/DHome.html (desktop).
-// Linked patients and requests arrive in tickets 04 and 05.
 export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const profile = await requireMember();
   const { error } = await searchParams;
+  const { patients, active } = await getActivePatient();
   const firstName = profile.full_name.split(/\s+/)[0];
   const today = new Intl.DateTimeFormat("en-PH", {
     weekday: "long",
@@ -35,6 +54,43 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     day: "numeric",
     timeZone: "Asia/Manila",
   }).format(new Date());
+
+  const supabase = await createClient();
+  const { count: unread } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .is("read_at", null);
+
+  // Everything below is for the patient being viewed. RLS
+  // (can_access_patient) refuses any patient this user may not see.
+  const [requests, meds, labs, docCount] = active
+    ? await Promise.all([
+        supabase
+          .from("requests")
+          .select("id, doc_type, detail, status, due_at")
+          .eq("patient_id", active.id)
+          .not("status", "in", "(released,declined)")
+          .order("created_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("medications")
+          .select("id, name, dose, schedule, record_date, source")
+          .eq("patient_id", active.id)
+          .order("record_date", { ascending: false }),
+        supabase
+          .from("lab_values")
+          .select("id, test_name, value, unit, record_date, source")
+          .eq("patient_id", active.id)
+          .order("record_date", { ascending: false })
+          .limit(4),
+        supabase
+          .from("documents")
+          .select("id", { count: "exact", head: true })
+          .eq("patient_id", active.id),
+      ])
+    : [null, null, null, null];
+  const activeRequests = (requests?.data ?? []) as RequestRow[];
+  const whose = active?.relationship === "You" ? "your" : `${active?.full_name.split(" ")[0]}'s`;
 
   return (
     <main className="flex flex-col gap-4 px-5 pt-5 pb-4 md:gap-6 md:px-10 md:py-8">
@@ -50,6 +106,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           <span className="text-[13px] font-normal text-muted-foreground">{greeting()},</span>
           <span className="font-heading text-xl font-bold">{firstName}</span>
         </h1>
+        <LiveBell userId={profile.id} initialCount={unread ?? 0} />
         <form action={logout}>
           <button
             type="submit"
@@ -62,21 +119,157 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       </div>
 
       {/* Desktop header */}
-      <div className="hidden flex-col gap-1 md:flex">
-        <span className="text-sm text-muted-foreground">{today}</span>
-        <h1 className="font-heading text-[30px] font-bold tracking-[-0.02em]">
-          {greeting()}, {firstName}
-        </h1>
+      <div className="hidden flex-wrap items-center gap-4 md:flex">
+        <div className="flex flex-[1_1_260px] flex-col gap-1">
+          <span className="text-sm text-muted-foreground">{today}</span>
+          <h1 className="font-heading text-[30px] font-bold tracking-[-0.02em]">
+            {greeting()}, {firstName}
+          </h1>
+        </div>
+        {active && <PatientSwitcher patients={patients} activeId={active.id} />}
+        <LiveBell userId={profile.id} initialCount={unread ?? 0} />
       </div>
 
-      {/* New-login notices (and, later, other alerts). */}
       <LoginNotices devicesHref="/profile/sessions" error={error === "1"} />
 
-      <div className="rounded-field bg-primary-soft px-3.5 py-3 text-sm text-primary-deep">
-        <strong>Waiting for the records office.</strong> They will link your
-        account to {profile.role === "caregiver" ? "the patient you care for" : "your hospital record"}.
-        After that you can request lab results here.
-      </div>
+      {!active ? (
+        <div className="rounded-field bg-primary-soft px-3.5 py-3 text-sm text-primary-deep">
+          <strong>Waiting for the records office.</strong> They will link your
+          account to {profile.role === "caregiver" ? "the patient you care for" : "your hospital record"}.
+          After that you can request lab results here.
+        </div>
+      ) : (
+        <>
+          <div className="md:hidden">
+            <PatientSwitcher patients={patients} activeId={active.id} />
+          </div>
+
+          <div className="flex flex-wrap gap-5">
+            <section className="flex flex-[1_1_320px] flex-col gap-3.5 rounded-panel bg-primary p-[18px] text-primary-foreground md:gap-4 md:p-6">
+              <div className="flex flex-col gap-1">
+                <h2 className="font-heading text-xl font-bold md:text-[22px]">At the doctor?</h2>
+                <p className="text-sm text-on-primary-muted md:text-[15px]">
+                  Show {whose} verified one-page summary in seconds.
+                </p>
+              </div>
+              {/* "Show QR" joins here when phase 6 builds /share. */}
+              <Link
+                href="/summary"
+                className="flex h-12 items-center justify-center rounded-field bg-card px-5 text-[15px] font-bold text-primary-deep no-underline hover:bg-primary-soft hover:text-primary-deep md:self-start"
+              >
+                Summary
+              </Link>
+            </section>
+            <section className="hidden flex-[1_1_200px] flex-col gap-1.5 rounded-panel border border-border bg-card p-6 md:flex">
+              <span className="text-sm text-muted-foreground">Active requests</span>
+              <span className="font-heading text-[44px] font-extrabold">{activeRequests.length}</span>
+              {activeRequests[0]?.due_at && (
+                <span className="text-sm font-semibold text-attention-foreground">
+                  Next release by {shortDate(activeRequests[0].due_at)}
+                </span>
+              )}
+            </section>
+            <section className="hidden flex-[1_1_200px] flex-col gap-1.5 rounded-panel border border-border bg-card p-6 md:flex">
+              <span className="text-sm text-muted-foreground">Documents in folder</span>
+              <span className="font-heading text-[44px] font-extrabold">{docCount?.count ?? 0}</span>
+              <Link href="/records" className="text-sm font-semibold">Open timeline</Link>
+            </section>
+          </div>
+
+          <section className="flex flex-col gap-2.5 md:rounded-panel md:border md:border-border md:bg-card md:p-6">
+            <div className="flex items-baseline justify-between md:items-center">
+              <h2 className="font-heading text-[17px] font-bold md:text-xl">Requests</h2>
+              <Link href="/requests/new" className="text-sm font-semibold md:hidden">
+                New request
+              </Link>
+              <Link href="/requests/new" className={cn(buttonVariants({ size: "sm" }), "hidden md:inline-flex")}>
+                + New request
+              </Link>
+            </div>
+            {activeRequests.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No active requests.</p>
+            ) : (
+              activeRequests.map((r) => (
+                <Link
+                  key={r.id}
+                  href="/requests"
+                  className="flex items-center gap-3 rounded-tile border border-border bg-card p-3.5 text-foreground no-underline hover:border-primary hover:text-foreground"
+                >
+                  <span className="flex flex-1 flex-col gap-[3px]">
+                    <span className="text-[15px] font-bold">
+                      {DOC_TYPES[r.doc_type]} — {r.detail}
+                    </span>
+                    <span className="text-[13px] text-muted-foreground">
+                      {FACILITY_NAME}
+                      {r.due_at && ` · Release by ${shortDate(r.due_at)}`}
+                    </span>
+                  </span>
+                  <StatusChip status={r.status} className="self-center" />
+                </Link>
+              ))
+            )}
+          </section>
+
+          <div className="flex flex-wrap gap-5">
+            <SummaryList
+              title="Current medications"
+              empty="No medications on record."
+              rows={(meds?.data ?? []).map((m) => ({
+                id: m.id,
+                name: m.name,
+                detail: [m.dose, m.schedule].filter(Boolean).join(" · "),
+              }))}
+              footer={
+                meds?.data?.[0]
+                  ? `Source: ${meds.data[0].source} · updated ${shortDate(meds.data[0].record_date)}`
+                  : undefined
+              }
+            />
+            <SummaryList
+              title="Latest lab values"
+              empty="No lab values on record."
+              rows={(labs?.data ?? []).map((l) => ({
+                id: l.id,
+                name: l.test_name,
+                detail: `${l.value}${l.unit ? ` ${l.unit}` : ""} · ${shortDate(l.record_date)}`,
+              }))}
+              footer="Every value shows its date and facility."
+            />
+          </div>
+        </>
+      )}
     </main>
+  );
+}
+
+function SummaryList({
+  title,
+  rows,
+  empty,
+  footer,
+}: {
+  title: string;
+  rows: { id: string; name: string; detail: string }[];
+  empty: string;
+  footer?: string;
+}) {
+  return (
+    <Card className="flex flex-[1_1_320px] flex-col rounded-tile px-3.5 py-1 md:gap-2 md:rounded-panel md:p-6">
+      <h2 className="mt-2.5 mb-1 font-heading text-[17px] font-bold md:m-0 md:mb-1.5 md:text-lg">{title}</h2>
+      {rows.length === 0 && <p className="py-2.5 text-sm text-muted-foreground">{empty}</p>}
+      {rows.map((r, i) => (
+        <div
+          key={r.id}
+          className={cn(
+            "flex justify-between gap-3 py-2.5 text-sm md:text-base",
+            i < rows.length - 1 && "border-b border-divider",
+          )}
+        >
+          <strong>{r.name}</strong>
+          <span className="text-right text-muted-foreground">{r.detail}</span>
+        </div>
+      ))}
+      {footer && <span className="pb-2.5 text-[13px] text-muted-foreground md:pb-0">{footer}</span>}
+    </Card>
   );
 }

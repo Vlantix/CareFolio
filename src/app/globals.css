@@ -32,6 +32,7 @@
   --border: #d4dfdd; /* card and container borders */
   --input: #c5d3d1; /* form field borders */
   --divider: #e6edec; /* lines between list rows */
+  --tab-track: #e1e9e7; /* behind segmented tabs */
   --ring: #0b6e69;
 
   /* Attention (orange): status and things that need a look */
@@ -83,6 +84,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-divider: var(--divider);
+  --color-tab-track: var(--tab-track);
   --color-ring: var(--ring);
   --color-accent: var(--accent);
   --color-attention: var(--attention);
@@ -205,4 +207,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cf-mark, .cf-glow, .cf-word, .cf-tag, .cf-bar, .cf-spin, .cf-pulse { animation: none; }
+}
+
+/* Printing protected records. Ctrl/Cmd+P or the browser menu print a
+   blank protected area; only the summary's own "Print PDF" button adds
+   cf-print-allowed, and what it prints carries the viewer watermark. */
+@media print {
+  body:not(.cf-print-allowed) .cf-protected { visibility: hidden; }
+  body { background: var(--card); }
+  @page { margin: 12mm; }
 }

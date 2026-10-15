@@ -8,22 +8,16 @@ stays small enough to actually ship by Session 3.
 
 ## Parked during /grill-with-docs
 
-- Record types beyond lab results: medical certificate, prescription
-  copy, discharge summary, medical abstract
 - Caregivers linking themselves, in-app consent forms, per-caregiver
   permission toggles (can request / view / share), revoking access
 - Share links with QR codes and access codes, doctor view, and the
   public "verify a document" page
-- Health summary: medications, allergies, diagnoses, lab values
 - Correction requests
 - Admin audit page, reports, account approval with ID upload and OCR
 - Urgent requests and working-day due dates
-- Screenshot blur and the diagonal watermark on document views
 
 ## Parked during /to-spec
 
-- A separate records list / timeline screen (for now, released results
-  open from My requests)
 - Adding new patient records from the app (demo patients come from SQL)
 
 ## Parked during ticket 02/03 (phase 2 prompt)
@@ -34,8 +28,7 @@ stays small enough to actually ship by Session 3.
 - Audit rows for account.created and admin.login (the otp, lock and
   session events are logged since phase 3)
 - Admin "Unlock" button for a locked account (phase 7.5)
-- Reminders (appointments, refills, labs) and a full notifications inbox
-  (today only the new-login notice shows on Home)
+- Reminders (appointments, refills, labs)
 
 ## Parked during /code-review
 
@@ -49,3 +42,10 @@ stays small enough to actually ship by Session 3.
   caregiver invites) — restore when those features ship
 - Real hospital name (src/lib/facility.ts) and Data Protection Officer
   contact (DPO_CONTACT) — needed before any real user signs up
+
+## Still parked after phase 5
+
+- Share tab, "Show QR" and "Share via QR" buttons (phase 6 builds /share)
+- Correction requests (and their notifications)
+- Admin screens to approve accounts and link caregivers (until then: the
+  SQL lines at the end of supabase/sql/007-patients-records-requests.sql)

@@ -5,16 +5,12 @@ import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { BackButton } from "@/components/ui/page-header";
 import { currentLogin } from "@/lib/login";
+import { maskEmail } from "@/lib/device";
 import { PORTAL_COOKIE } from "@/lib/mfa";
 import { OtpForm } from "./otp-form";
 
 export const metadata = { title: "Check your email · CareFolio" };
 
-/** m••••@gmail.com — enough to recognise, not enough to read out. */
-function maskEmail(email: string) {
-  const [name, domain] = email.split("@");
-  return `${name.slice(0, 1)}••••@${domain}`;
-}
 
 // design/Otp.html (mobile) and design/DVerify.html (desktop).
 export default async function VerifyPage() {

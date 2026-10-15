@@ -17,7 +17,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   return (
-    <aside className="hidden w-60 shrink-0 flex-col gap-7 bg-sidebar px-[18px] py-7 text-primary-foreground md:flex">
+    <aside className="hidden w-60 shrink-0 print:hidden flex-col gap-7 bg-sidebar px-[18px] py-7 text-primary-foreground md:flex">
       <Link href={items[0]?.href ?? "/"} className="px-2 no-underline">
         <Logo variant="dark" />
       </Link>

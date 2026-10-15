@@ -49,3 +49,9 @@ export function waitText(seconds: number) {
   const s = seconds % 60;
   return m > 0 ? `${m} min ${String(s).padStart(2, "0")} s` : `${s} s`;
 }
+
+/** m••••@gmail.com — enough to recognise, not enough to read out. */
+export function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+  return `${name.slice(0, 1)}••••@${domain}`;
+}

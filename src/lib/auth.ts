@@ -12,6 +12,9 @@ export type Profile = {
   terms_accepted_at: string | null;
   privacy_consent_at: string | null;
   onboarded_at: string | null;
+  /** The records office checks each new account: pending → active/rejected. */
+  status: "pending" | "active" | "rejected";
+  reject_reason: string | null;
 };
 
 /**
@@ -44,7 +47,7 @@ export const getAuthState = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, terms_accepted_at, privacy_consent_at, onboarded_at")
+    .select("id, email, full_name, role, terms_accepted_at, privacy_consent_at, onboarded_at, status, reject_reason")
     .eq("id", userId)
     .maybeSingle<Profile>();
 

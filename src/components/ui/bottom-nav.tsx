@@ -15,7 +15,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
   return (
     <nav
       aria-label="Main"
-      className="sticky bottom-0 grid border-t border-border bg-card px-2 pt-2 pb-5 md:hidden"
+      className="sticky bottom-0 grid print:hidden border-t border-border bg-card px-2 pt-2 pb-5 md:hidden"
       style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
     >
       {items.map(({ href, label, icon }) => {
