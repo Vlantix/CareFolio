@@ -2,9 +2,12 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { sendCodeEmail, sendLinkEmail } from "@/lib/email";
 
-// Supabase "Send Email Hook": instead of sending auth emails itself,
-// Supabase calls this address with the code (or link details) and we
-// send the email ourselves — through Gmail or Resend (src/lib/email.ts).
+// Supabase "Send Email Hook" (optional): instead of sending auth emails
+// itself, Supabase calls this address with the link details and we send
+// the email ourselves — through Gmail or Resend (src/lib/email.ts).
+// Login codes do NOT come through here any more: CareFolio makes and
+// sends those itself (src/app/verify/actions.ts). This is for
+// password-reset (and email-change) links.
 //
 // Set up in Supabase → Authentication → Hooks → Send Email (HTTPS):
 //   URL:    https://<your site>/api/auth/send-email
@@ -75,8 +78,7 @@ export async function POST(request: NextRequest) {
   let result;
   try {
     switch (data.email_action_type) {
-      // Our login / sign-up step: signInWithOtp sends a "magiclink" email,
-      // which carries the 6-digit code.
+      // Not used by our login any more, kept in case Supabase sends one.
       case "magiclink":
       case "signup":
       case "reauthentication":

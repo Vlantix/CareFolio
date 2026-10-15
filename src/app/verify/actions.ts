@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomInt } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -12,6 +13,7 @@ import {
 import { otpSchema } from "@/lib/validation";
 import { deviceLabel, phTime, waitText } from "@/lib/device";
 import { currentLogin } from "@/lib/login";
+import { sendCodeEmail } from "@/lib/email";
 
 export type SendState = { sent?: boolean; error?: string; waitSeconds?: number };
 
@@ -22,23 +24,40 @@ async function lockMessage(supabase: Awaited<ReturnType<typeof createClient>>) {
   return `Too many wrong codes. You can try again at ${phTime(lockedUntil)}.`;
 }
 
-/** Emails a 6-digit code to the logged-in user, within the send limits. */
+/**
+ * The code is checked by its hash, tied to this exact login (session):
+ * sha256("<session id>:<code>"). The code itself is never stored.
+ */
+function hashCode(sessionId: string, code: string) {
+  return createHash("sha256").update(`${sessionId}:${code}`).digest("hex");
+}
+
+/**
+ * Emails a 6-digit code to the logged-in user, within the send limits.
+ * CareFolio makes the code and sends it itself through Resend
+ * (src/lib/email.ts) — Supabase isn't involved in sending it.
+ */
 export async function sendCode(): Promise<SendState> {
   const login = await currentLogin();
   // No recent password login (e.g. a device logged out from the Devices
   // page): never email the owner a code — send them to log in instead.
-  if (!login || !login.passwordRecently) redirect("/login?notice=expired");
+  if (!login || !login.passwordRecently || !login.sessionId) redirect("/login?notice=expired");
 
-  const locked = await lockMessage(login.supabase);
-  if (locked) return { error: locked };
+  // A random 6-digit code from a secure random source.
+  const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
 
-  // Our limits (1 a minute, 5 an hour), checked and recorded in the
-  // database. The code itself is never stored or logged.
-  const { data: wait, error: limitError } = await login.supabase.rpc("otp_send_check");
-  if (limitError) {
-    // Visible in Vercel → Logs (never the code itself).
-    console.error("sendCode: send-limit check failed:", limitError.code, limitError.message);
+  // Stores only the hash, after the limits (1 a minute, 5 an hour) and
+  // the lockout check — all in the database.
+  const { data: wait, error: issueError } = await login.supabase.rpc("issue_login_code", {
+    p_code_hash: hashCode(login.sessionId, code),
+  });
+  if (issueError) {
+    console.error("sendCode: issue_login_code failed:", issueError.code, issueError.message);
     return { error: "We couldn't send the code. Please try again in a minute." };
+  }
+  if (wait === -1) {
+    return (await lockMessage(login.supabase).then((m) => (m ? { error: m } : null))) ??
+      { error: "Too many wrong codes. Please try again later." };
   }
   if (wait > 0) {
     return {
@@ -47,23 +66,14 @@ export async function sendCode(): Promise<SendState> {
     };
   }
 
-  const { error } = await login.supabase.auth.signInWithOtp({
-    email: login.email,
-    // Never create an account from this step — only existing users get codes.
-    options: { shouldCreateUser: false },
-  });
-  if (error) {
-    if (error.status === 429 || error.code?.includes("rate_limit")) {
-      return { error: "A code was sent a moment ago. Wait a minute before asking for another.", waitSeconds: 60 };
-    }
-    console.error("sendCode: Supabase could not send the email:", error.status, error.code, error.message);
-    // A hook error means our email sender (Gmail / Resend) refused — the
-    // reason is logged by /api/auth/send-email in Vercel → Logs.
-    const hook = /hook/i.test(error.message);
+  const sent = await sendCodeEmail(login.email, code, `login-code/${login.sessionId}/${Date.now()}`);
+  if (!sent.ok) {
+    // The exact reason (e.g. Resend's "testing emails to your own email
+    // address") is in Vercel → Logs. Never the code itself.
+    console.error("sendCode: email not sent:", sent.error);
     return {
-      error: hook
-        ? "Our email service couldn't send the code. Please try again in a minute — if it keeps happening, tell the records office."
-        : "We couldn't send the code. Please try again in a minute.",
+      error:
+        "Our email service couldn't send the code. Please try again in a minute — if it keeps happening, tell the records office.",
     };
   }
   return { sent: true };
@@ -76,47 +86,35 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const login = await currentLogin();
-  if (!login || !login.passwordRecently) redirect("/login?notice=expired");
+  if (!login || !login.passwordRecently || !login.sessionId) redirect("/login?notice=expired");
+  const { supabase, userId } = login;
 
-  const { supabase, userId, email } = login;
-
-  // Counts this attempt BEFORE checking the code, one at a time per user,
-  // so codes fired off in parallel can't slip past the lockout.
-  const { data: lockedNow, error: lockError } = await supabase.rpc("otp_begin_verify");
-  if (lockError) return { error: "We couldn't check the code. Please try again." };
-  if (lockedNow) {
-    return {
-      error: `Too many wrong codes. You can try again at ${phTime(lockedNow)}.`,
-      lockedUntil: lockedNow,
-    };
-  }
-
-  const { data, error } = await supabase.auth.verifyOtp({
-    email,
-    token: parsed.data,
-    type: "email",
-  });
-  if (error || data.user?.id !== userId) {
-    // Count it; the 5th wrong code within 15 minutes locks code entry.
-    const { data: lockedUntil } = await supabase.rpc("otp_note_failed");
-    if (lockedUntil) {
-      return {
-        error: `Too many wrong codes. You can try again at ${phTime(lockedUntil)}.`,
-        lockedUntil,
-      };
-    }
-    return { error: "That code is wrong or has expired. Check it, or send a new one." };
-  }
-
-  // Correct code: start this device's session (also posts the
-  // "New login" notice and the audit row), then remember it in cf_mfa.
+  // The database counts the attempt first (race-proof lockout), compares
+  // hashes, and on success starts this device's session (with the "New
+  // login" notice and the audit row).
   const device = deviceLabel((await headers()).get("user-agent"));
-  const { data: sessionId, error: sessionError } = await supabase.rpc("start_session", {
+  const { data, error } = await supabase.rpc("verify_login_code", {
+    p_code_hash: hashCode(login.sessionId, parsed.data),
     p_device_label: device,
   });
-  if (sessionError || !sessionId) {
-    return { error: "We couldn't finish logging you in. Please try again." };
+  if (error || !data) {
+    console.error("verifyCode: verify_login_code failed:", error?.code, error?.message);
+    return { error: "We couldn't check the code. Please try again." };
   }
+  const result = data as { status: string; session_id?: string; locked_until?: string };
+  if (result.status === "locked" && result.locked_until) {
+    return {
+      error: `Too many wrong codes. You can try again at ${phTime(result.locked_until)}.`,
+      lockedUntil: result.locked_until,
+    };
+  }
+  if (result.status === "expired") {
+    return { error: "That code has expired. Send a new one." };
+  }
+  if (result.status !== "ok" || !result.session_id) {
+    return { error: "That code is wrong. Check it, or send a new one." };
+  }
+  const sessionId = result.session_id;
 
   const cookieStore = await cookies();
   cookieStore.set(MFA_COOKIE, await createMfaToken(userId, sessionId), mfaCookieOptions);

@@ -119,10 +119,14 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
 - **Menus** live in `src/lib/menus.ts` (server only) so staff addresses
   never reach a patient's browser. Add a menu item only when its page
   exists.
-- **Email:** Supabase's Send Email Hook calls `/api/auth/send-email`
-  (signature-checked), which sends the code or link through a team Gmail
-  (nodemailer, approved by the team — free, reaches any inbox) or, if not
-  set, Resend (`src/lib/email.ts`). `GMAIL_APP_PASSWORD`,
+- **Email:** the login code is made, emailed and checked by CareFolio
+  itself (`src/app/verify/actions.ts` + `supabase/sql/013`): only its
+  hash is stored, and a correct code creates the device session that
+  `passed_email_code()` checks. Supabase never sends the code. Emails go
+  through a team Gmail (nodemailer, approved by the team) or, if not
+  set, Resend (`src/lib/email.ts`). The optional Send Email Hook
+  (`/api/auth/send-email`, signature-checked) is only for
+  password-reset links. `GMAIL_APP_PASSWORD`,
   `RESEND_API_KEY` and `SEND_EMAIL_HOOK_SECRET` are server-only — never
   `NEXT_PUBLIC_`, never committed.
 - **No service-role key.** Data users must not reach is protected with

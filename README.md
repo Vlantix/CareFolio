@@ -49,7 +49,7 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `GMAIL_APP_PASSWORD` | **Yes** — server only | 16-letter App Password for that Gmail (needs 2-Step Verification) | myaccount.google.com/apppasswords |
 | `RESEND_API_KEY` | **Yes** — server only | Alternative sender (used only if the Gmail pair isn't set) | Resend → API Keys ("Sending access" is enough) |
 | `RESEND_FROM_EMAIL` | No (server only) | Sender address. On `…@resend.dev`, Resend only delivers to the Resend account owner's email — verify a domain to email anyone | e.g. `codes@yourdomain.com` |
-| `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Proves emails requests really come from Supabase | Shown when you create the Send Email Hook (step 4) |
+| `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Optional. Only if reset-link emails go through the Send Email Hook | Shown when you create the hook (step 4) |
 
 **Never** add the Supabase `service_role` key or any `sb_secret_…` key to
 this project — they bypass Row Level Security. CareFolio doesn't need
@@ -75,25 +75,24 @@ order**, one at a time (paste → Run):
 | `010-phase6-review-fixes.sql` | Sharing ends when access ends, privacy trims |
 | `011-admin-portal.sql` | Records office portal, change audit |
 | `012-extras.sql` | Profile, data rights, unlock, staff alerts, walk-ins, facility suggestions |
+| `013-own-email-codes.sql` | CareFolio makes, emails (Gmail/Resend) and checks its own login codes |
 
 All demo data is **fake**. Never put real patient data in a demo.
 
 ### 4. Supabase Authentication settings
 
 - **Sign In / Providers → Email:** turn **Confirm email** OFF.
-- **Emails → Magic Link** template: make sure it shows `{{ .Token }}`
-  (that's the 6-digit code), and the email code length is 6.
 - **URL Configuration:** Site URL = your live URL; add
   `<live URL>/auth/callback` and `http://localhost:3000/auth/callback`
   to Redirect URLs (used by "Forgot password").
-- **Hooks → Send Email hook (HTTPS):** URL
-  `<live URL>/api/auth/send-email`. Generate the secret, put it in
-  `SEND_EMAIL_HOOK_SECRET` (Vercel + `.env.local`) and redeploy. From then
-  on Supabase doesn't send auth emails itself: it hands each code or link
-  to our endpoint, which sends it through **Gmail** (`GMAIL_USER` +
-  `GMAIL_APP_PASSWORD`) or, if those aren't set, **Resend**. No SMTP
-  setup in Supabase needed. Refused emails show their reason in Vercel →
-  Logs.
+- **Login codes need no Supabase email setup.** After the password,
+  our server makes a 6-digit code (valid 10 minutes), stores only its
+  hash, and emails it through **Gmail** (`GMAIL_USER` +
+  `GMAIL_APP_PASSWORD`) or, if those aren't set, **Resend**. Refused
+  emails show their reason in Vercel → Logs (`sendCode: email not sent`).
+- **Hooks → Send Email hook (optional, password reset only):** URL
+  `<live URL>/api/auth/send-email`, secret in `SEND_EMAIL_HOOK_SECRET`.
+  Leave it off and Supabase sends reset links itself.
 
 ### 5. Make the first staff account
 
