@@ -45,12 +45,8 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `VERIFY_COOKIE_SECRET` | **Yes** — server only | Signs the "passed the email code" cookie. At least 32 random characters | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
 | `NEXT_PUBLIC_SITE_URL` | No | The live address, used in share-link QR codes and the stamp on released PDFs | e.g. `https://hackathon-f1-forge.vercel.app` |
 | `NEXT_PUBLIC_FACILITY_NAME` | No | The partner hospital's name shown on screens | e.g. `Partner Hospital` |
-| `EMAIL_PROVIDER` | No (server only) | Optional: `gmail` or `resend` forces one sender. Empty = Gmail if set, else Resend | Test with `npm run test:email -- you@example.com` |
-| `GMAIL_USER` | No (server only) | The team Gmail that sends login codes. Free, reaches any inbox (~500/day). Used when set | e.g. `carefolio.codes@gmail.com` |
-| `GMAIL_APP_PASSWORD` | **Yes** — server only | 16-letter App Password for that Gmail (needs 2-Step Verification) | myaccount.google.com/apppasswords |
-| `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | **Yes** — server only | Instead of the App Password: Google OAuth for that Gmail. Used when all three are set | Google Cloud OAuth client + OAuth Playground (below) |
-| `RESEND_API_KEY` | **Yes** — server only | Alternative sender (used only if the Gmail pair isn't set) | Resend → API Keys ("Sending access" is enough) |
-| `RESEND_FROM_EMAIL` | No (server only) | Sender address. On `…@resend.dev`, Resend only delivers to the Resend account owner's email — verify a domain to email anyone | e.g. `codes@yourdomain.com` |
+| `GMAIL_USER` | No (server only) | The team Gmail that sends login codes (Gmail API, ~500/day, any inbox) | e.g. `carefolio.codes@gmail.com` |
+| `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | **Yes** — server only | Google OAuth for that Gmail, used to call the Gmail API | Google Cloud OAuth client + OAuth Playground (below) |
 | `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Optional. Only if reset-link emails go through the Send Email Hook | Shown when you create the hook (step 4) |
 
 **Never** add the Supabase `service_role` key or any `sb_secret_…` key to
@@ -77,7 +73,7 @@ order**, one at a time (paste → Run):
 | `010-phase6-review-fixes.sql` | Sharing ends when access ends, privacy trims |
 | `011-admin-portal.sql` | Records office portal, change audit |
 | `012-extras.sql` | Profile, data rights, unlock, staff alerts, walk-ins, facility suggestions |
-| `013-own-email-codes.sql` | CareFolio makes, emails (Gmail/Resend) and checks its own login codes |
+| `013-own-email-codes.sql` | CareFolio makes, emails (Gmail API) and checks its own login codes |
 | `014-undelivered-codes.sql` | A code that failed to send is switched off and doesn't count against the limits |
 
 All demo data is **fake**. Never put real patient data in a demo.
@@ -90,14 +86,14 @@ All demo data is **fake**. Never put real patient data in a demo.
   to Redirect URLs (used by "Forgot password").
 - **Login codes need no Supabase email setup.** After the password,
   our server makes a 6-digit code (valid 10 minutes), stores only its
-  hash, and emails it through **Gmail** (`GMAIL_USER` +
-  `GMAIL_APP_PASSWORD`) or, if those aren't set, **Resend**. Refused
-  emails show their reason in Vercel → Logs (`sendCode: email not sent`).
+  hash, and emails it through the **Gmail API** from `GMAIL_USER`
+  (Google OAuth — see below). Refused emails show their reason in
+  Vercel → Logs (`[otp] email failed`).
 - **Hooks → Send Email hook (optional, password reset only):** URL
   `<live URL>/api/auth/send-email`, secret in `SEND_EMAIL_HOOK_SECRET`.
   Leave it off and Supabase sends reset links itself.
 
-### Getting a Gmail refresh token (only for Google OAuth)
+### Getting the Gmail API refresh token
 
 1. Google Cloud Console → **APIs & Services → Library**: enable **Gmail API**.
 2. **OAuth consent screen**: add `GMAIL_USER` as a test user — or, better,
@@ -107,11 +103,11 @@ All demo data is **fake**. Never put real patient data in a demo.
    `https://developers.google.com/oauthplayground`.
 4. Open https://developers.google.com/oauthplayground → ⚙ → tick **Use
    your own OAuth credentials**, paste the client ID and secret.
-5. Step 1: enter scope `https://mail.google.com/` → **Authorize APIs** →
+5. Step 1: enter scope `https://www.googleapis.com/auth/gmail.send` → **Authorize APIs** →
    sign in as `GMAIL_USER`. Step 2: **Exchange authorization code for
    tokens** → copy the **Refresh token** into `GMAIL_REFRESH_TOKEN`.
 6. `npm run test:email -- you@example.com` should say
-   `using provider: gmail (oauth)` and `"ok": true`.
+   `using provider: gmail api` and `"ok": true`.
 
 ### 5. Make the first staff account
 
@@ -160,9 +156,10 @@ Every push to `main` deploys to Vercel.
 - **Works locally but not on Vercel:** run `npm run build` locally, and
   check the Vercel environment variables (then redeploy).
 - **No login code arrives:** check spam; then Vercel → Logs for
-  "send-email hook". "Testing emails to your own email address" means the
-  sender is still `…@resend.dev` — use the Resend account's own email, or
-  verify a domain in Resend.
+  `[otp] email failed`. `invalid_client` = wrong client ID/secret;
+  `invalid_grant` = the refresh token expired or was revoked (publish the
+  OAuth app, then get a new token); `403` = the Gmail API isn't enabled or
+  the token lacks the `gmail.send` scope.
 - **"Profile missing" / empty screens after login:** a SQL file in
   `supabase/sql/` hasn't been run, or was run out of order.
 - **`npm audit` warnings:** they're in the development toolchain only —

@@ -1,10 +1,10 @@
--- 013 — CareFolio sends and checks its own login codes (via Resend).
+-- 013 — CareFolio sends and checks its own login codes (via the Gmail API).
 --
 -- Run AFTER 012: Supabase -> SQL Editor -> paste -> Run.
 --
 -- Before: Supabase created the 6-digit code, emailed it, and checked it;
 -- the database trusted Supabase's "this login used a code" marker.
--- Now: our server creates the code and emails it with Resend. Only a
+-- Now: our server creates the code and emails it with the Gmail API. Only a
 -- HASH of the code is stored here (never the code), for 10 minutes, tied
 -- to the exact login (session) that asked for it. A correct code creates
 -- the device session — and that live device session is what every RLS

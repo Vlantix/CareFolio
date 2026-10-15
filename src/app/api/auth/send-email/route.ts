@@ -4,7 +4,7 @@ import { sendCodeEmail, sendLinkEmail } from "@/lib/email";
 
 // Supabase "Send Email Hook" (optional): instead of sending auth emails
 // itself, Supabase calls this address with the link details and we send
-// the email ourselves — through Gmail or Resend (src/lib/email.ts).
+// the email ourselves — through the Gmail API (src/lib/email.ts).
 // Login codes do NOT come through here any more: CareFolio makes and
 // sends those itself (src/app/verify/actions.ts). This is for
 // password-reset (and email-change) links.
@@ -67,9 +67,6 @@ export async function POST(request: NextRequest) {
     return hookError(400, "Bad payload");
   }
   const { user, email_data: data } = payload;
-  // Pattern <event-type>/<entity-id>: one email per Supabase message,
-  // even if Supabase retries this call.
-  const idempotencyKey = `auth-email/${request.headers.get("webhook-id")}`;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   // Link emails go through Supabase's verify step, then on to redirect_to.
   const verifyLink = (hash: string, type: string) =>
@@ -82,7 +79,7 @@ export async function POST(request: NextRequest) {
       case "magiclink":
       case "signup":
       case "reauthentication":
-        result = await sendCodeEmail(user.email, data.token, idempotencyKey);
+        result = await sendCodeEmail(user.email, data.token);
         break;
       case "recovery":
         result = await sendLinkEmail(
@@ -92,7 +89,6 @@ export async function POST(request: NextRequest) {
           "Someone asked to reset your CareFolio password. If it was you, choose a new one:",
           verifyLink(data.token_hash, "recovery"),
           "Choose a new password",
-          idempotencyKey,
         );
         break;
       case "email_change":
@@ -103,7 +99,6 @@ export async function POST(request: NextRequest) {
           "Confirm this is your new email address for CareFolio:",
           verifyLink(data.token_hash_new || data.token_hash, "email_change"),
           "Confirm email",
-          idempotencyKey,
         );
         break;
       default:
@@ -114,7 +109,6 @@ export async function POST(request: NextRequest) {
           "Use this link to continue:",
           verifyLink(data.token_hash, data.email_action_type),
           "Continue",
-          idempotencyKey,
         );
     }
   } catch (e) {
@@ -123,8 +117,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!result.ok) {
-    // Shows up in Vercel → Logs, e.g. a wrong Gmail App Password, or
-    // Resend's "testing emails to your own email address".
+    // Shows up in Vercel → Logs, e.g. an expired Gmail refresh token.
     console.error("send-email hook: email refused:", result.error);
     return hookError(502, result.error);
   }

@@ -165,8 +165,9 @@ Devices page and new-login notice in the records-office area.
 and use a code without the password. Closing that needs Supabase's
 built-in MFA (parked in LATER.md).
 
-**Email delivery:** codes are sent by Supabase through Resend (custom
-SMTP), the team's chosen email vendor.
+**Email delivery:** CareFolio makes the 6-digit code itself and emails it
+through the Gmail API (Google OAuth) from the team Gmail. Only a hash of
+the code is stored; it lasts 10 minutes.
 
 **Risk:** Supabase does not offer an emailed code as a second step out
 of the box, so it has to be built. If it takes more than about 30

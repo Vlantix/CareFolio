@@ -34,8 +34,8 @@ function hashCode(sessionId: string, code: string) {
 
 /**
  * Emails a 6-digit code to the logged-in user, within the send limits.
- * CareFolio makes the code and sends it itself through Resend
- * (src/lib/email.ts) — Supabase isn't involved in sending it.
+ * CareFolio makes the code here and sends it itself through the Gmail
+ * API (src/lib/email.ts) — Supabase isn't involved in sending it.
  */
 export async function sendCode(): Promise<SendState> {
   const login = await currentLogin();
@@ -69,14 +69,14 @@ export async function sendCode(): Promise<SendState> {
 
   let sent: SentResult;
   try {
-    sent = await sendCodeEmail(login.email, code, `login-code/${login.sessionId}/${Date.now()}`);
+    sent = await sendCodeEmail(login.email, code);
   } catch (e) {
     // e.g. no email provider configured on this deployment.
     sent = { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
   if (!sent.ok) {
-    // The exact reason (e.g. Resend's "testing emails to your own email
-    // address") is in Vercel → Logs. Only the domain — never the full
+    // The exact reason (e.g. Gmail's "invalid_grant": the refresh token
+    // expired) is in Vercel → Logs. Only the domain — never the full
     // address, never the code.
     console.error("[otp] email failed:", sent.error, "| to domain:", login.email.split("@")[1]);
     // The code never arrived: switch it off and give the send back, so

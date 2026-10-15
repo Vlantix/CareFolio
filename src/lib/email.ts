@@ -1,88 +1,116 @@
 import "server-only";
-import nodemailer from "nodemailer";
-import { Resend } from "resend";
 
-// Emails CareFolio sends: login codes and account links.
+// Emails CareFolio sends: login codes and account links — all through
+// the Gmail API (Google OAuth), from the team Gmail GMAIL_USER.
 //
-// Two ways to send (server-only secrets, never NEXT_PUBLIC_):
-//   1. Gmail — GMAIL_USER plus EITHER an App Password (GMAIL_APP_PASSWORD)
-//      OR Google OAuth (GMAIL_CLIENT_ID + GMAIL_CLIENT_SECRET +
-//      GMAIL_REFRESH_TOKEN, scope https://mail.google.com/). Free, reaches
-//      ANY inbox (about 500 a day).
-//   2. Resend — RESEND_API_KEY + RESEND_FROM_EMAIL. While the sender is
-//      on resend.dev, Resend only delivers to the Resend account owner's
-//      own inbox; it needs a verified domain to reach everyone.
-// EMAIL_PROVIDER ("gmail" or "resend") forces one. Without it: Gmail if
-// its two settings exist, otherwise Resend.
+// Settings (server-only secrets, never NEXT_PUBLIC_):
+//   GMAIL_USER            the Gmail address that sends
+//   GMAIL_CLIENT_ID       Google Cloud → Credentials → OAuth client
+//   GMAIL_CLIENT_SECRET   …same place
+//   GMAIL_REFRESH_TOKEN   from signing in once as GMAIL_USER, with scope
+//                         https://www.googleapis.com/auth/gmail.send
+//                         (or https://mail.google.com/) — see README.
+//
+// Two plain HTTPS calls, no extra library: swap the refresh token for a
+// short-lived access token, then ask Gmail to send the message.
 
-/** `key` makes a retried send a no-op (Resend idempotency, 24 h). */
-type Sender = (to: string, subject: string, html: string, text: string, key?: string) => Promise<SentResult>;
+const TOKEN_URL = "https://oauth2.googleapis.com/token";
+const SEND_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send";
 
-let sendVia: Sender | null = null;
-
-function pickSender(): Sender {
-  const forced = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
-  if (forced && forced !== "gmail" && forced !== "resend") {
-    throw new Error(`EMAIL_PROVIDER must be "gmail" or "resend" (got "${forced}").`);
-  }
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailPass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
+function settings() {
+  const user = process.env.GMAIL_USER;
   const clientId = process.env.GMAIL_CLIENT_ID;
   const clientSecret = process.env.GMAIL_CLIENT_SECRET;
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-  const gmailOAuth = Boolean(clientId && clientSecret && refreshToken);
-  const gmailReady = Boolean(gmailUser && (gmailOAuth || gmailPass));
-  if (forced === "gmail" && !gmailReady) {
+  if (!user || !clientId || !clientSecret || !refreshToken) {
     throw new Error(
-      "EMAIL_PROVIDER is gmail, but GMAIL_USER plus GMAIL_APP_PASSWORD (or GMAIL_CLIENT_ID + GMAIL_CLIENT_SECRET + GMAIL_REFRESH_TOKEN) is missing.",
+      "Gmail API not configured: set GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET and GMAIL_REFRESH_TOKEN.",
     );
   }
-  if (forced === "gmail" || (!forced && gmailReady)) {
-    console.info(`[email] using provider: gmail (${gmailOAuth ? "oauth" : "app password"})`);
-    const transport = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      // OAuth: nodemailer swaps the refresh token for a short-lived
-      // access token by itself.
-      auth: gmailOAuth
-        ? { type: "OAuth2", user: gmailUser!, clientId, clientSecret, refreshToken }
-        : { user: gmailUser!, pass: gmailPass! },
-    });
-    return async (to, subject, html, text) => {
-      try {
-        await transport.sendMail({ from: `CareFolio <${gmailUser}>`, to, subject, html, text });
-        return { ok: true };
-      } catch (e) {
-        return { ok: false, error: `Gmail: ${e instanceof Error ? e.message : String(e)}` };
-      }
-    };
-  }
+  return { user, clientId, clientSecret, refreshToken };
+}
 
-  const key = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
-  if (!key || !from) {
-    throw new Error(
-      forced === "resend"
-        ? "EMAIL_PROVIDER is resend, but RESEND_API_KEY or RESEND_FROM_EMAIL is missing."
-        : "No email sender configured: set GMAIL_USER + GMAIL_APP_PASSWORD (or RESEND_API_KEY + RESEND_FROM_EMAIL).",
-    );
-  }
-  console.info("[email] using provider: resend");
-  const resend = new Resend(key);
-  const sender = from.includes("<") ? from : `CareFolio <${from}>`;
-  return async (to, subject, html, text, key) => {
-    const { error } = await resend.emails.send({
-      from: sender,
-      to: [to],
-      subject,
-      html,
-      text,
-      // Supabase may retry the hook; the same key never sends twice.
-      ...(key ? { idempotencyKey: key } : {}),
-    });
-    return error ? { ok: false, error: `Resend: ${error.name}: ${error.message}` } : { ok: true };
+// The access token lasts about an hour; reuse it until shortly before then.
+let cachedToken: { value: string; expiresAt: number } | null = null;
+let loggedOnce = false;
+
+async function accessToken(s: ReturnType<typeof settings>): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  const res = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: s.clientId,
+      client_secret: s.clientSecret,
+      refresh_token: s.refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+  const data = (await res.json().catch(() => ({}))) as {
+    access_token?: string;
+    expires_in?: number;
+    error?: string;
+    error_description?: string;
   };
+  if (!res.ok || !data.access_token) {
+    // e.g. invalid_client (wrong ID/secret), invalid_grant (token expired or revoked)
+    throw new Error(`token: ${data.error ?? res.status}${data.error_description ? `: ${data.error_description}` : ""}`);
+  }
+  cachedToken = { value: data.access_token, expiresAt: Date.now() + ((data.expires_in ?? 3600) - 60) * 1000 };
+  return data.access_token;
+}
+
+const b64 = (s: string) => Buffer.from(s, "utf-8").toString("base64");
+
+/** A plain-text + HTML email in the raw format Gmail expects. */
+function mime(from: string, to: string, subject: string, html: string, text: string) {
+  const boundary = `cf_${crypto.randomUUID()}`;
+  return [
+    `From: CareFolio <${from}>`,
+    `To: ${to}`,
+    `Subject: =?UTF-8?B?${b64(subject)}?=`,
+    "MIME-Version: 1.0",
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    "",
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64(text),
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64(html),
+    `--${boundary}--`,
+    "",
+  ].join("\r\n");
+}
+
+async function deliver(to: string, subject: string, html: string, text: string): Promise<SentResult> {
+  const s = settings(); // throws a clear error if a setting is missing
+  if (!loggedOnce) {
+    console.info("[email] using provider: gmail api");
+    loggedOnce = true;
+  }
+  if (/[\r\n]/.test(to)) return { ok: false, error: "Gmail API: bad recipient" };
+  try {
+    const token = await accessToken(s);
+    const raw = Buffer.from(mime(s.user, to, subject, html, text), "utf-8").toString("base64url");
+    const res = await fetch(SEND_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ raw }),
+    });
+    if (!res.ok) {
+      if (res.status === 401) cachedToken = null;
+      const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      return { ok: false, error: `Gmail API: ${res.status}: ${data.error?.message ?? res.statusText}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: `Gmail API: ${e instanceof Error ? e.message : String(e)}` };
+  }
 }
 
 const escape = (s: string) =>
@@ -107,13 +135,8 @@ If you didn't try to sign in, you can ignore it — your account is safe.</p>
 
 export type SentResult = { ok: true } | { ok: false; error: string };
 
-function deliver(to: string, subject: string, html: string, text: string, key?: string): Promise<SentResult> {
-  sendVia ??= pickSender();
-  return sendVia(to, subject, html, text, key);
-}
-
 /** The 6-digit login / sign-up code. */
-export function sendCodeEmail(to: string, code: string, key?: string) {
+export function sendCodeEmail(to: string, code: string) {
   const digits = code.split("").join(" ");
   return deliver(
     to,
@@ -124,7 +147,6 @@ export function sendCodeEmail(to: string, code: string, key?: string) {
 <p style="margin:0;padding:16px;border-radius:12px;background:#E3F1EF;text-align:center;font-size:32px;font-weight:800;letter-spacing:6px;color:#0B4A46">${escape(digits)}</p>`,
     ),
     `Your CareFolio login code is ${code}. Never share it. If you didn't try to sign in, ignore this email.`,
-    key,
   );
 }
 
@@ -136,7 +158,6 @@ export function sendLinkEmail(
   intro: string,
   url: string,
   button: string,
-  key?: string,
 ) {
   return deliver(
     to,
@@ -147,6 +168,5 @@ export function sendLinkEmail(
 <p style="margin:0"><a href="${escape(url)}" style="display:inline-block;padding:14px 22px;border-radius:12px;background:#0B6E69;color:#FFFFFF;font-weight:700;text-decoration:none">${escape(button)}</a></p>`,
     ),
     `${intro}\n\n${url}`,
-    key,
   );
 }

@@ -123,11 +123,11 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   itself (`src/app/verify/actions.ts` + `supabase/sql/013`): only its
   hash is stored, and a correct code creates the device session that
   `passed_email_code()` checks. Supabase never sends the code. Emails go
-  through a team Gmail (nodemailer, approved by the team) or, if not
-  set, Resend (`src/lib/email.ts`). The optional Send Email Hook
+  through the Gmail API with Google OAuth (`src/lib/email.ts`, plain
+  `fetch`, no email library). The optional Send Email Hook
   (`/api/auth/send-email`, signature-checked) is only for
-  password-reset links. `GMAIL_APP_PASSWORD`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`,
-  `RESEND_API_KEY` and `SEND_EMAIL_HOOK_SECRET` are server-only — never
+  password-reset links. `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`
+  and `SEND_EMAIL_HOOK_SECRET` are server-only — never
   `NEXT_PUBLIC_`, never committed.
 - **No service-role key.** Data users must not reach is protected with
   security definer functions and admin-only RLS policies instead.
