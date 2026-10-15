@@ -32,5 +32,6 @@ export const memberSidebar: NavItem[] = [
 /** Records office. "Link accounts" arrives with ticket 04. */
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "Request queue", icon: "inbox" },
+  { href: "/admin/corrections", label: "Corrections", icon: "list" },
   { href: "/admin/devices", label: "Devices", icon: "devices" },
 ];

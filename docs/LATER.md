@@ -8,8 +8,7 @@ stays small enough to actually ship by Session 3.
 
 ## Parked during /grill-with-docs
 
-- Caregivers linking themselves, in-app consent forms, per-caregiver
-  permission toggles (can request / view / share), revoking access
+- Editing per-caregiver permission toggles (can request / view / share)
 - Admin audit page, reports, account approval with ID upload and OCR
 
 ## Parked during /to-spec
@@ -40,5 +39,6 @@ stays small enough to actually ship by Session 3.
 
 ## Still parked after phase 5
 
-- Admin screens to approve accounts and link caregivers (until then: the
-  SQL lines at the end of supabase/sql/007-patients-records-requests.sql)
+- Admin screens to approve accounts, link caregivers, and record consent
+  for patients who have no login (until then: the SQL lines at the end
+  of supabase/sql/007-patients-records-requests.sql)

@@ -27,6 +27,12 @@ type Row = {
   updated_at: string;
 };
 
+const CORRECTION_KINDS: Record<string, string> = {
+  wrong_value: "A value or detail is wrong",
+  missing_record: "A record is missing",
+  outdated_medications: "Medication list is outdated",
+};
+
 const TABS = [
   { key: "active", label: "Active", statuses: ["submitted", "under_review", "info_requested", "approved"] },
   { key: "released", label: "Released", statuses: ["released"] },
@@ -49,6 +55,14 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
         .order("created_at", { ascending: false })
     : { data: [] };
   const all = (data ?? []) as Row[];
+  const { data: corrections } = active
+    ? await supabase
+        .from("correction_requests")
+        .select("id, kind, record_label, details, status, admin_note, created_at, documents(title)")
+        .eq("patient_id", active.id)
+        .order("created_at", { ascending: false })
+        .limit(10)
+    : { data: [] };
   const count = (key: (typeof TABS)[number]) =>
     all.filter((r) => (key.statuses as readonly string[]).includes(r.status)).length;
   const rows = all.filter((r) => (tab.statuses as readonly string[]).includes(r.status));
@@ -165,6 +179,38 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
           </article>
         );
       })}
+      {(corrections ?? []).length > 0 && (
+        <section className="mt-2 flex flex-col gap-2.5">
+          <h2 className="text-caption font-bold tracking-[0.05em] text-muted-foreground uppercase">Correction requests</h2>
+          {(corrections ?? []).map((c) => {
+            const doc = c.documents as unknown as { title: string } | null;
+            return (
+              <article key={c.id} className="flex flex-col gap-1.5 rounded-tile border border-border bg-card p-3.5">
+                <div className="flex justify-between gap-2">
+                  <strong className="text-ui">{CORRECTION_KINDS[c.kind] ?? c.kind}</strong>
+                  <span
+                    className={cn(
+                      "self-start rounded-full px-2.5 py-1.25 text-xs font-bold",
+                      c.status === "fixed"
+                        ? "bg-primary-soft text-primary-deep"
+                        : c.status === "rejected"
+                          ? "bg-danger text-danger-foreground"
+                          : "bg-info text-info-foreground",
+                    )}
+                  >
+                    {c.status === "fixed" ? "Corrected" : c.status === "rejected" ? "Not changed" : "Open"}
+                  </span>
+                </div>
+                <span className="text-caption text-muted-foreground">
+                  {doc?.title ?? c.record_label ?? "General"} · sent {shortDate(c.created_at)}
+                </span>
+                {c.admin_note && <p className="text-sm">Records office: {c.admin_note}</p>}
+              </article>
+            );
+          })}
+        </section>
+      )}
+
       <Link
         href="/corrections/new"
         className="mt-2 flex items-center gap-2.5 rounded-button border border-dashed border-disabled-text bg-card p-3.5 text-sm text-foreground no-underline hover:border-primary hover:text-foreground"

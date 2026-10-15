@@ -12,13 +12,22 @@ export default async function NewCorrectionPage() {
   const profile = await requireMember();
   const { active } = await getActivePatient();
   const supabase = await createClient();
-  const { data } = active
-    ? await supabase
-        .from("documents")
-        .select("id, title, record_date")
-        .eq("patient_id", active.id)
-        .order("record_date", { ascending: false })
-    : { data: [] };
+  const [docs, meds, labs, allergies, diagnoses] = active
+    ? await Promise.all([
+        supabase.from("documents").select("id, title, record_date").eq("patient_id", active.id).order("record_date", { ascending: false }),
+        supabase.from("medications").select("name").eq("patient_id", active.id),
+        supabase.from("lab_values").select("test_name").eq("patient_id", active.id),
+        supabase.from("allergies").select("allergen").eq("patient_id", active.id),
+        supabase.from("diagnoses").select("name").eq("patient_id", active.id),
+      ])
+    : [];
+  const unique = (values: string[]) => [...new Set(values)];
+  const items = [
+    { group: "Medications", labels: unique((meds?.data ?? []).map((m) => m.name)) },
+    { group: "Lab values", labels: unique((labs?.data ?? []).map((l) => l.test_name)) },
+    { group: "Allergies", labels: unique((allergies?.data ?? []).map((a) => a.allergen)) },
+    { group: "Diagnoses", labels: unique((diagnoses?.data ?? []).map((d) => d.name)) },
+  ].filter((g) => g.labels.length > 0);
 
   return (
     <main className="flex flex-1 flex-col gap-4 px-5 pt-5 pb-6 md:max-w-2xl md:px-10 md:py-8">
@@ -34,7 +43,8 @@ export default async function NewCorrectionPage() {
       )}
       <CorrectionForm
         disabled={!active || profile.status !== "active"}
-        documents={(data ?? []).map((d) => ({ id: d.id, label: `${d.title} · ${mediumDate(d.record_date)}` }))}
+        documents={(docs?.data ?? []).map((d) => ({ id: d.id, label: `${d.title} · ${mediumDate(d.record_date)}` }))}
+        items={items}
       />
     </main>
   );

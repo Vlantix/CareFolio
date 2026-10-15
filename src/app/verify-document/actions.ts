@@ -10,7 +10,6 @@ export type VerifyResult =
       status: "authentic";
       code: string;
       type: string;
-      title: string;
       patient: string;
       facility: string;
       released_at: string;

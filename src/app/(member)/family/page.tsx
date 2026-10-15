@@ -54,7 +54,7 @@ export default async function FamilyPage({ searchParams }: PageProps<"/family">)
           <p className="text-ui leading-normal text-muted-foreground">
             Caregivers can request and view records for {firstName} only with recorded consent.
           </p>
-          <h2 className="font-heading text-[17px] font-bold">People with access</h2>
+          <h2 className="font-heading text-subtitle font-bold">People with access</h2>
 
           {!patientRow && (
             <article className="flex items-center gap-3 rounded-tile border border-border bg-card p-3.5">

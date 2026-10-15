@@ -9,20 +9,12 @@ import { getActivePatient } from "@/lib/patients";
 import { createClient } from "@/lib/supabase/server";
 import { maskEmail } from "@/lib/device";
 import { latestPerTest, shortDate } from "@/lib/records";
-import { printedAt } from "@/lib/dates";
+import { ageFrom, printedAt } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { PrintButton } from "./print-button";
 
 export const metadata = { title: "Health summary · CareFolio" };
 
-function age(birthdate: string | null) {
-  if (!birthdate) return null;
-  const b = new Date(birthdate);
-  const now = new Date();
-  let years = now.getFullYear() - b.getFullYear();
-  if (now < new Date(now.getFullYear(), b.getMonth(), b.getDate())) years--;
-  return years;
-}
 
 const SECTION = "flex flex-col rounded-tile border border-border bg-card px-3.5 py-3";
 const HEADING = "mb-1 text-caption font-bold tracking-[0.05em] text-muted-foreground uppercase";
@@ -53,7 +45,7 @@ export default async function SummaryPage() {
   ]);
   const allDates = [allergies, meds, diagnoses, labs].flatMap((r) => (r.data ?? []).map((x) => x.record_date as string));
   const updated = allDates.sort().at(-1);
-  const years = age(active.birthdate);
+  const years = ageFrom(active.birthdate);
   const printed = printedAt(new Date());
   const latestLabs = latestPerTest(labs.data ?? []);
 

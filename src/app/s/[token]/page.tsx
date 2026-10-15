@@ -27,21 +27,13 @@ type Shared = {
   expires_at: string;
   shared_by: string;
   relation: string;
-  patient: { full_name: string; birthdate: string | null; sex: string | null; hospital_no: string };
+  patient: { full_name: string; age: number | null; sex: string | null };
   medications?: (Row & { name: string; dose: string | null; schedule: string | null })[];
   allergies?: (Row & { allergen: string; reaction: string | null; severity: string | null })[];
   labs?: (Row & { test_name: string; value: string; unit: string | null })[];
   diagnoses?: (Row & { name: string })[];
 };
 
-function age(birthdate: string | null) {
-  if (!birthdate) return null;
-  const b = new Date(birthdate);
-  const now = new Date();
-  let years = now.getFullYear() - b.getFullYear();
-  if (now < new Date(now.getFullYear(), b.getMonth(), b.getDate())) years--;
-  return years;
-}
 
 // design/MDoctorView.html
 export default async function SharedPage({ params }: PageProps<"/s/[token]">) {
@@ -84,7 +76,6 @@ export default async function SharedPage({ params }: PageProps<"/s/[token]">) {
   }
 
   const s = data as Shared;
-  const years = age(s.patient.birthdate);
   const notShared = (Object.keys(SHARE_SECTIONS) as ShareSection[]).filter((k) => !s.sections.includes(k));
 
   return (
@@ -99,11 +90,9 @@ export default async function SharedPage({ params }: PageProps<"/s/[token]">) {
         <ProtectedView watermark="Viewed via shared link" audit={false} className="flex-1">
           <div className="flex flex-col gap-3.5 bg-card px-5 py-4.5 md:mx-auto md:max-w-2xl">
             <div className="flex flex-col gap-0.5">
-              <h1 className="font-heading text-[26px] font-bold">{s.patient.full_name}</h1>
+              <h1 className="font-heading text-heading font-bold">{s.patient.full_name}</h1>
               <span className="text-sm text-muted-foreground">
-                {[years !== null && `${years} yrs`, s.patient.sex, `Hospital no. ${s.patient.hospital_no}`]
-                  .filter(Boolean)
-                  .join(" · ")}
+                {[s.patient.age !== null && `${s.patient.age} yrs`, s.patient.sex].filter(Boolean).join(" · ")}
               </span>
             </div>
 
@@ -218,7 +207,7 @@ function Gone({
     <main className="cf-enter mx-auto flex w-full max-w-[420px] flex-1 flex-col gap-6 px-6 pt-14 pb-8">
       <Logo size="lg" />
       <div className="flex flex-col gap-2">
-        <h1 className="font-heading text-[32px] leading-[1.1] font-bold tracking-[-0.02em]">{title}</h1>
+        <h1 className="font-heading text-hero leading-[1.1] font-bold tracking-[-0.02em]">{title}</h1>
         <p className="text-base leading-normal text-muted-foreground">{body}</p>
       </div>
       <Link href="/verify-document" className="font-semibold">

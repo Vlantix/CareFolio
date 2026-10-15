@@ -16,9 +16,11 @@ const KINDS = [
 
 export function CorrectionForm({
   documents,
+  items,
   disabled,
 }: {
   documents: { id: string; label: string }[];
+  items: { group: string; labels: string[] }[];
   disabled: boolean;
 }) {
   const [state, action, pending] = useActionState<CorrectionState, FormData>(sendCorrection, {});
@@ -39,15 +41,26 @@ export function CorrectionForm({
           ))}
         </fieldset>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="document">Which record?</Label>
+          <Label htmlFor="record">Which record?</Label>
           <select
-            id="document"
-            name="document"
+            id="record"
+            name="record"
             className="h-12 rounded-field border-[1.5px] border-input bg-card px-3 text-ui focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
           >
-            <option value="">Health summary / not a specific document</option>
-            {documents.map((d) => (
-              <option key={d.id} value={d.id}>{d.label}</option>
+            <option value="">Not a specific record</option>
+            {documents.length > 0 && (
+              <optgroup label="Documents">
+                {documents.map((d) => (
+                  <option key={d.id} value={`doc:${d.id}`}>{d.label}</option>
+                ))}
+              </optgroup>
+            )}
+            {items.map((g) => (
+              <optgroup key={g.group} label={g.group}>
+                {g.labels.map((l) => (
+                  <option key={l} value={`item:${g.group}: ${l}`}>{l}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>

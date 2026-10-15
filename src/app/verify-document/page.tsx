@@ -19,7 +19,7 @@ export default function VerifyDocumentPage() {
         </span>
       </div>
       <div className="flex flex-col gap-2">
-        <h1 className="font-heading text-[28px] leading-[1.15] font-bold tracking-[-0.02em]">Is this document real?</h1>
+        <h1 className="font-heading text-display leading-[1.15] font-bold tracking-[-0.02em]">Is this document real?</h1>
         <p className="text-ui leading-normal text-muted-foreground">
           For doctors, schools, employers and insurers. Enter the code printed on the document.
         </p>

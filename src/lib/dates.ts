@@ -27,6 +27,31 @@ export const printedAt = fmt({ dateStyle: "medium", timeStyle: "short" });
 /** "2026-10-16" — for comparing calendar days */
 export const dayKey = (value: Date | string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(value));
+/** "OCT" */
+export const monthShort = fmt({ month: "short" });
+/** "05" */
+export const dayTwoDigit = fmt({ day: "2-digit" });
+
+/** Whole years since a birthdate (null if unknown). */
+export function ageFrom(birthdate: string | null) {
+  if (!birthdate) return null;
+  const b = new Date(birthdate);
+  const now = new Date();
+  let years = now.getFullYear() - b.getFullYear();
+  if (now < new Date(now.getFullYear(), b.getMonth(), b.getDate())) years--;
+  return years;
+}
+
+/** "2026-10-15T10:00" in Manila time, for <input type="datetime-local">. */
+export function manilaInputValue(value: Date | string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+    hour12: false, timeZone: TZ,
+  }).formatToParts(new Date(value));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour") === "24" ? "00" : get("hour")}:${get("minute")}`;
+}
+
 /** Hour of the day in Manila, 0–23 */
 export const hourNow = () =>
   Number(new Intl.DateTimeFormat("en-PH", { hour: "numeric", hour12: false, timeZone: TZ }).format(new Date()));

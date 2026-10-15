@@ -37,21 +37,23 @@ export async function createShare(_prev: ShareState, form: FormData): Promise<Sh
   const supabase = await createClient();
   // The database checks permission (patient, or caregiver allowed to
   // share), stores ONLY the hash, and writes the 'share.created' audit row.
-  const { data: id, error } = await supabase.rpc("create_share_link", {
+  const { data, error } = await supabase.rpc("create_share_link", {
     p_patient: active.id,
     p_token_hash: hash,
     p_sections: sections,
     p_minutes: minutes,
     p_code_hash: code ? hashAccessCode(hash, code) : null,
   });
-  if (error || !id) return { error: "We couldn't create the link. Please try again." };
+  const created = data as { id: string; expires_at: string } | null;
+  if (error || !created) return { error: "We couldn't create the link. Please try again." };
 
   revalidatePath("/share");
   return {
     link: {
-      id,
+      id: created.id,
       url: `${await siteUrl()}/s/${token}`,
-      expiresAt: new Date(Date.now() + minutes * 60_000).toISOString(),
+      // The database's own expiry, so the countdown matches the link.
+      expiresAt: created.expires_at,
       code: code || null,
     },
   };

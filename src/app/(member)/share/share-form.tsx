@@ -22,13 +22,17 @@ export function ShareForm({
   const [state, action, pending] = useActionState<ShareState, FormData>(createShare, {});
   const [qr, setQr] = useState<string>();
   const [copied, setCopied] = useState(false);
-  const link = state.link;
+  const [revokedId, setRevokedId] = useState<string>();
+  // Once revoked from this card, stop showing its QR and countdown.
+  const link = state.link && state.link.id !== revokedId ? state.link : undefined;
 
   useEffect(() => {
     if (!link) return;
-    // The QR library draws on a canvas and can't read CSS tokens: these
-    // are --foreground and --card.
-    QRCode.toDataURL(link.url, { margin: 1, width: 240, color: { dark: "#10292C", light: "#FFFFFF" } })
+    // The QR library draws on a canvas, so read the colour tokens here.
+    const css = getComputedStyle(document.documentElement);
+    const dark = css.getPropertyValue("--foreground").trim();
+    const light = css.getPropertyValue("--card").trim();
+    QRCode.toDataURL(link.url, { margin: 1, width: 240, color: { dark, light } })
       .then(setQr)
       .catch(() => setQr(undefined));
   }, [link]);
@@ -50,7 +54,7 @@ export function ShareForm({
             {link.code && (
               <>
                 <span className="text-caption text-muted-foreground">Access code to say aloud</span>
-                <strong className="font-heading text-[26px] tracking-[0.12em]">{link.code.split("").join(" ")}</strong>
+                <strong className="font-heading text-heading tracking-[0.12em]">{link.code.split("").join(" ")}</strong>
               </>
             )}
             <span className="text-xs text-muted-foreground">Read-only · opens in any browser</span>
@@ -65,7 +69,7 @@ export function ShareForm({
               >
                 {copied ? "Copied" : "Copy link"}
               </button>
-              <form action={revokeShare}>
+              <form action={revokeShare} onSubmit={() => setRevokedId(link.id)}>
                 <input type="hidden" name="linkId" value={link.id} />
                 <button type="submit" className="min-h-11 text-sm font-semibold text-attention-foreground">
                   Revoke link

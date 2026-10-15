@@ -33,6 +33,9 @@ export const shareCodeCookie = (tokenHash: string) => `cf_share_${tokenHash.slic
 export async function siteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
   if (configured) return configured;
+  // Vercel provides the production address itself; prefer it over
+  // request headers, which a caller could set.
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
