@@ -8,10 +8,10 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 import {
   requestReset,
-  verifyResetCode,
+  verifyAndSetPassword,
   setNewPassword,
   type ResetState,
-  type VerifyResetState,
+  type ResetAllState,
 } from "./actions";
 
 // `useRef` is only used for the OTP digit boxes below.
@@ -53,7 +53,7 @@ export function RequestResetForm() {
   );
 }
 
-// ── Step 2: enter the OTP ───────────────────────────────────────────────────
+// ── Step 2+3: enter OTP code and new password together ─────────────────────
 
 function VerifyResetCodeForm({
   email,
@@ -63,8 +63,8 @@ function VerifyResetCodeForm({
   onRestart: () => void;
 }) {
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
-  const [state, action, pending] = useActionState<VerifyResetState, FormData>(
-    verifyResetCode,
+  const [state, action, pending] = useActionState<ResetAllState, FormData>(
+    verifyAndSetPassword,
     {},
   );
   const boxes = useRef<Array<HTMLInputElement | null>>([]);
@@ -95,13 +95,12 @@ function VerifyResetCodeForm({
 
   return (
     <form action={action} noValidate className="flex flex-col gap-5">
-      {/* Hidden fields carry the email and the assembled code. */}
       <input type="hidden" name="email" value={email} />
       <input type="hidden" name="code" value={code} />
 
       <p className="text-sm leading-relaxed text-muted-foreground">
-        We sent a 6-digit code to <strong className="text-foreground">{email}</strong>. Check
-        your inbox and spam folder.
+        We sent a 6-digit code to <strong className="text-foreground">{email}</strong>. Enter
+        it below along with your new password.
       </p>
 
       <FormAlert>{state.error}</FormAlert>
@@ -147,8 +146,17 @@ function VerifyResetCodeForm({
         </div>
       </fieldset>
 
+      <PasswordInput
+        id="password"
+        name="password"
+        label="New password"
+        placeholder="At least 8 characters"
+        autoComplete="new-password"
+        required
+      />
+
       <Button type="submit" size="lg" disabled={pending || code.length !== 6}>
-        {pending ? "Checking…" : "Verify code"}
+        {pending ? "Saving…" : "Set new password"}
       </Button>
 
       <button

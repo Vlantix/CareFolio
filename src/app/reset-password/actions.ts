@@ -74,6 +74,55 @@ export async function verifyResetCode(
   redirect("/reset-password");
 }
 
+export type ResetAllState = { error?: string };
+
+/**
+ * Combined step 2+3 — verify the 6-digit code and set the new password in
+ * one submission. Replaces the two-step verify → redirect → set flow shown
+ * in the separate forms.
+ */
+export async function verifyAndSetPassword(
+  _prev: ResetAllState,
+  form: FormData,
+): Promise<ResetAllState> {
+  const email = String(form.get("email") ?? "").trim();
+  const code = String(form.get("code") ?? "").trim();
+  const parsed = newPasswordSchema.safeParse(form.get("password"));
+
+  if (!email) return { error: "Session expired. Please start over." };
+  if (!/^\d{6}$/.test(code)) return { error: "Enter the 6-digit code from your email." };
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const supabase = await createClient();
+
+  const { error: otpError } = await supabase.auth.verifyOtp({
+    email,
+    token: code,
+    type: "recovery",
+  });
+  if (otpError) {
+    console.error("verifyAndSetPassword: verifyOtp:", otpError.code, otpError.status);
+    if (otpError.status === 403 || otpError.code === "otp_expired") {
+      return { error: "That code has expired. Request a new one." };
+    }
+    return { error: "That code is wrong. Double-check it and try again." };
+  }
+
+  const { error: pwError } = await supabase.auth.updateUser({ password: parsed.data });
+  if (pwError) {
+    return {
+      error:
+        pwError.code === "same_password"
+          ? "Choose a password different from your old one."
+          : "Something went wrong. Please start over.",
+    };
+  }
+
+  await supabase.auth.signOut({ scope: "local" });
+  (await cookies()).delete(MFA_COOKIE);
+  redirect("/login?notice=reset");
+}
+
 /** Step 3 — save the new password. */
 export async function setNewPassword(_prev: ResetState, form: FormData): Promise<ResetState> {
   const parsed = newPasswordSchema.safeParse(form.get("password"));
