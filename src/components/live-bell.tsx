@@ -37,7 +37,7 @@ export function LiveBell({
     };
 
     const channel = supabase
-      .channel(`notifications:${userId}`)
+      .channel(`notifications:${userId}:${crypto.randomUUID()}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `profile_id=eq.${userId}` },
