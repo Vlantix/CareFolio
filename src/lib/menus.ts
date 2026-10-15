@@ -14,7 +14,7 @@ export const memberTabs: NavItem[] = [
   { href: "/records", label: "Records", icon: "records" },
   { href: "/requests", label: "Requests", icon: "list" },
   { href: "/share", label: "Share", icon: "share" },
-  { href: "/profile/sessions", label: "Profile", icon: "profile" },
+  { href: "/profile", label: "Profile", icon: "profile" },
 ];
 
 /** Patients and caregivers — desktop sidebar (design/DHome.html). */
@@ -26,7 +26,7 @@ export const memberSidebar: NavItem[] = [
   { href: "/share", label: "Share & QR", icon: "share" },
   { href: "/family", label: "Family access", icon: "family" },
   { href: "/reminders", label: "Reminders", icon: "reminders" },
-  { href: "/profile/sessions", label: "Devices", icon: "devices" },
+  { href: "/profile", label: "Profile", icon: "profile" },
 ];
 
 /** Records office. "Link accounts" arrives with ticket 04. */

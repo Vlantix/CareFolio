@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Figtree, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Splash } from "@/components/splash";
+import { ServiceWorker } from "@/components/pwa";
 import { SPLASH_SEEN_KEY } from "@/lib/splash";
 
 // Body text. Exposed as a CSS variable that globals.css turns into font-sans.
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {children}
         <Splash />
+        <ServiceWorker />
       </body>
     </html>
   );

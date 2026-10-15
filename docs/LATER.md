@@ -23,7 +23,6 @@ stays small enough to actually ship by Session 3.
   button until then)
 - Audit rows for account.created and admin.login (the otp, lock and
   session events are logged since phase 3)
-- Admin "Unlock" button for a locked account (phase 7.5)
 - PDFs over 4 MB (would need direct-to-storage upload)
 
 ## Parked during /code-review

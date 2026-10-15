@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { InputField } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { activateAccount, rejectAccount, setRole, type AccountState } from "./actions";
+import { activateAccount, rejectAccount, resolveAccountRequest, setRole, type AccountState } from "./actions";
 
 export function RegistrationActions({
   profileId,
@@ -103,6 +103,34 @@ export function AddStaffForm() {
       <Button type="submit" disabled={pending}>+ Add staff</Button>
       <FormAlert className="w-full">{state.error}</FormAlert>
       {state.ok && <FormAlert tone="info" className="w-full">{state.ok}</FormAlert>}
+    </form>
+  );
+}
+
+export function AccountRequestActions({ requestId, kind }: { requestId: string; kind: "name_change" | "deletion" }) {
+  const [state, action, pending] = useActionState<AccountState, FormData>(resolveAccountRequest, {});
+  if (state.ok) return <FormAlert tone="info">{state.ok}</FormAlert>;
+  return (
+    <form action={action} className="flex w-full flex-col gap-2">
+      <input type="hidden" name="request_id" value={requestId} />
+      <Textarea name="note" rows={2} maxLength={300} aria-label="Note to the person (required to reject)" placeholder="Note (required to reject)" />
+      <FormAlert>{state.error}</FormAlert>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" name="decision" value="reject" disabled={pending} className="h-11 rounded-field border-[1.5px] border-input bg-card px-4 text-sm font-semibold">
+          Reject
+        </button>
+        <button
+          type="submit"
+          name="decision"
+          value="approve"
+          disabled={pending}
+          className={kind === "deletion"
+            ? "h-11 rounded-field bg-destructive px-4 text-sm font-bold text-destructive-foreground"
+            : "h-11 rounded-field bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary-hover"}
+        >
+          {kind === "deletion" ? "Approve & delete account" : "Approve name change"}
+        </button>
+      </div>
     </form>
   );
 }

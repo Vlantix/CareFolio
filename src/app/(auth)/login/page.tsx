@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileText, ShieldCheck, Download } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+import { ClearOfflineCopy } from "@/components/pwa";
 import { BrandPanel } from "../brand-panel";
 import { LoginForm } from "./login-form";
 
@@ -24,6 +25,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
   return (
     <div className="flex min-h-full flex-1 flex-wrap">
+      {/* Every log out lands here: forget this device's offline summary. */}
+      <ClearOfflineCopy />
       <BrandPanel>
         <p className="max-w-[520px] font-heading text-5xl leading-[1.05] font-bold tracking-[-0.03em]">
           Every record. One folder. Any doctor.

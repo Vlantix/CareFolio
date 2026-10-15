@@ -67,3 +67,36 @@ export async function setRole(_prev: AccountState, form: FormData): Promise<Acco
   revalidatePath("/admin/accounts");
   return { ok: "Role updated." };
 }
+
+/** Clear a wrong-code lockout (audited 'auth.unlocked'). */
+export async function unlockAccount(form: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  await supabase.rpc("admin_unlock", { p_profile: String(form.get("profile_id") ?? "") });
+  revalidatePath("/admin/accounts");
+}
+
+/** Approve or reject a name change / account deletion request. */
+export async function resolveAccountRequest(_prev: AccountState, form: FormData): Promise<AccountState> {
+  await requireAdmin();
+  const approve = form.get("decision") === "approve";
+  const note = String(form.get("note") ?? "").trim().slice(0, 300);
+  if (!approve && note.length < 5) return { error: "Write a note — the person will see it." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_resolve_account_request", {
+    p_id: String(form.get("request_id") ?? ""),
+    p_approve: approve,
+    p_note: note,
+  });
+  if (error) {
+    if (/permission denied/i.test(error.message)) {
+      return {
+        error:
+          "The database wouldn't delete the login. Delete the user in Supabase → Authentication → Users, then approve again.",
+      };
+    }
+    return { error: friendly(error.message, "Couldn't complete that.") };
+  }
+  revalidatePath("/admin/accounts");
+  return { ok: approve ? "Done." : "Rejected." };
+}

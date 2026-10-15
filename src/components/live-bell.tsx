@@ -14,10 +14,13 @@ import { cn } from "@/lib/utils";
 export function LiveBell({
   userId,
   initialCount,
+  href = "/notifications",
   className,
 }: {
   userId: string;
   initialCount: number;
+  /** Where the bell opens (staff: /admin/notifications). */
+  href?: string;
   className?: string;
 }) {
   const [count, setCount] = useState(initialCount);
@@ -55,7 +58,7 @@ export function LiveBell({
 
   return (
     <Link
-      href="/notifications"
+      href={href}
       aria-label={count > 0 ? `Notifications, ${count} new` : "Notifications"}
       className={cn(
         "relative flex size-11 items-center justify-center rounded-field border border-border bg-card text-foreground hover:bg-primary-soft hover:text-foreground md:size-12",

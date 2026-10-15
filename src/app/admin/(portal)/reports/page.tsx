@@ -72,10 +72,10 @@ const fmt = (n: number | null, digits = 1) => (n === null ? "—" : n.toFixed(di
 export default async function ReportsPage() {
   await requireAdmin();
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("requests")
-    .select("doc_type, status, created_at, due_at, documents(released_at)")
-    .order("created_at");
+  const [{ data }, { data: suggestions }] = await Promise.all([
+    supabase.from("requests").select("doc_type, status, created_at, due_at, documents(released_at)").order("created_at"),
+    supabase.from("facility_suggestions").select("id, name, city, reason, created_at").order("created_at", { ascending: false }).limit(50),
+  ]);
   const r = compute((data ?? []) as unknown as Req[]);
   const maxWeek = Math.max(1, ...r.weeks.map((w) => w.count));
   const maxDays = Math.max(TARGET_DAYS, ...r.byType.map((b) => b.days ?? 0));
@@ -156,6 +156,22 @@ export default async function ReportsPage() {
           <p className="text-caption text-muted-foreground">Orange = above the {TARGET_DAYS}-day target.</p>
         </section>
       </div>
+
+      <section className="flex flex-col gap-3 rounded-card border border-border bg-card p-5">
+        <h2 className="font-heading text-lg font-bold">Facilities users suggested</h2>
+        {(suggestions ?? []).length === 0 && <p className="text-muted-foreground">No suggestions yet.</p>}
+        <ul className="flex flex-col">
+          {(suggestions ?? []).map((s) => (
+            <li key={s.id} className="flex flex-col gap-0.5 border-t border-divider py-2.5 first:border-0">
+              <span>
+                <strong>{s.name}</strong> · {s.city}
+                <span className="text-caption text-muted-foreground"> · {shortDate(s.created_at)}</span>
+              </span>
+              {s.reason && <span className="text-sm text-muted-foreground">{s.reason}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

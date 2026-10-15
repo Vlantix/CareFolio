@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { FormAlert } from "@/components/ui/form-alert";
+import { ClearOfflineCopy } from "@/components/pwa";
 import { StaffLoginForm } from "./staff-login-form";
 
 // Reached ONLY by typing /admin/login. Never link to it from anything a
@@ -17,6 +18,8 @@ export default async function StaffLoginPage({ searchParams }: PageProps<"/admin
 
   return (
     <main className="cf-enter flex min-h-full flex-1 flex-col items-center justify-center bg-navy px-4 py-12 sm:px-6">
+      {/* Every log out lands here: forget this device's offline summary. */}
+      <ClearOfflineCopy />
       <div className="flex w-full max-w-[440px] flex-col gap-[22px] rounded-hero bg-card p-6 sm:p-9">
         <div className="flex items-center gap-3">
           <Image

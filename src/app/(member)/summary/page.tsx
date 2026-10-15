@@ -12,6 +12,7 @@ import { latestPerTest, shortDate } from "@/lib/records";
 import { ageFrom, printedAt } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { PrintButton } from "./print-button";
+import { OfflineSummaryBanner } from "@/components/pwa";
 
 export const metadata = { title: "Health summary · CareFolio" };
 
@@ -59,6 +60,7 @@ export default async function SummaryPage() {
         </span>
       </div>
 
+      <OfflineSummaryBanner />
       <div className="print:hidden">
         <PatientSwitcher patients={patients} activeId={active.id} />
       </div>

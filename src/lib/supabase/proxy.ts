@@ -148,6 +148,9 @@ const PUBLIC_PATHS = new Set([
   "/admin/login",
   "/auth/callback",
   "/verify-document",
+  "/sw.js",
+  "/manifest.webmanifest",
+  "/offline.html",
 ]);
 
 function isPublic(path: string) {

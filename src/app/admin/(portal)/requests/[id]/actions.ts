@@ -61,12 +61,14 @@ export async function releaseRequest(_prev: ReleaseState, form: FormData): Promi
   const supabase = await createClient();
   const { data: req } = await supabase
     .from("requests")
-    .select("id, patient_id, requester_id, status, patients(profile_id)")
+    .select("id, patient_id, requester_id, status, channel, patients(profile_id)")
     .eq("id", id)
     .maybeSingle();
   if (!req) return { error: "Request not found." };
 
-  // Re-check on the server what the ticks claim.
+  // Re-check on the server what the ticks claim. (Walk-ins: staff
+  // checked ID and authorization in person at the counter.)
+  if (req.channel !== "walk_in") {
   const { data: requester } = await supabase.from("profiles").select("status").eq("id", req.requester_id).maybeSingle();
   if (requester?.status !== "active") return { error: "The requester's account isn't verified." };
   const isSelf = (req.patients as unknown as { profile_id: string | null } | null)?.profile_id === req.requester_id;
@@ -79,6 +81,7 @@ export async function releaseRequest(_prev: ReleaseState, form: FormData): Promi
       .eq("status", "active")
       .maybeSingle();
     if (!link?.consent_at) return { error: "No caregiver consent is on file for this requester." };
+  }
   }
 
   const file = form.get("file");

@@ -18,7 +18,7 @@ export default async function ReviewRequestPage({ params }: PageProps<"/admin/re
   const supabase = await createClient();
   const { data: r } = await supabase
     .from("requests")
-    .select("id, code, doc_type, detail, purpose, status, is_urgent, urgent_reason, due_at, created_at, info_question, info_reply, decline_reason, requester_id, patient_id, patients(full_name, hospital_no, profile_id), profiles(full_name, status)")
+    .select("id, code, doc_type, detail, purpose, status, is_urgent, urgent_reason, due_at, created_at, info_question, info_reply, decline_reason, requester_id, patient_id, channel, walk_in_name, patients(full_name, hospital_no, profile_id), profiles(full_name, status)")
     .eq("id", id)
     .maybeSingle();
   if (!r) notFound();
@@ -26,7 +26,8 @@ export default async function ReviewRequestPage({ params }: PageProps<"/admin/re
   const patient = r.patients as unknown as { full_name: string; hospital_no: string; profile_id: string | null };
   const requester = r.profiles as unknown as { full_name: string; status: string } | null;
   const isSelf = patient.profile_id === r.requester_id;
-  const { data: link } = isSelf
+  const walkIn = r.channel === "walk_in";
+  const { data: link } = isSelf || walkIn
     ? { data: null }
     : await supabase
         .from("caregiver_links")
@@ -36,7 +37,14 @@ export default async function ReviewRequestPage({ params }: PageProps<"/admin/re
         .maybeSingle();
 
   const docType = r.doc_type as DocType;
-  const checks = [
+  const checks = walkIn
+    ? [
+        { name: "check_identity", label: "Walk-in ID checked", ok: true, hint: `${r.walk_in_name} showed a valid ID at the counter` },
+        { name: "check_consent", label: "Authorized for this patient", ok: true, hint: "The patient, or a signed authorization letter from them" },
+        { name: "check_record", label: "Record exists", ok: true, hint: `Find "${DOC_TYPES[r.doc_type as DocType]} — ${r.detail}" in the hospital's records` },
+        { name: "check_purpose", label: "Purpose is acceptable", ok: true, hint: r.purpose },
+      ]
+    : [
     {
       name: "check_identity",
       label: "Requester identity confirmed",
@@ -73,7 +81,7 @@ export default async function ReviewRequestPage({ params }: PageProps<"/admin/re
             {r.code} · {DOC_TYPES[docType]} — {r.detail}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            For {patient.full_name} ({patient.hospital_no}) · requested by {isSelf ? "the patient" : `${requester?.full_name} (caregiver)`} ·{" "}
+            For {patient.full_name} ({patient.hospital_no}) · requested by {walkIn ? `${r.walk_in_name} (walk-in, logged by ${requester?.full_name})` : isSelf ? "the patient" : `${requester?.full_name} (caregiver)`} ·{" "}
             {mediumDate(r.created_at)} · Purpose: {r.purpose}
           </p>
         </div>

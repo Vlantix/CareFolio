@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
     return [
       { source: "/admin", headers: noindex },
+      // The service worker must never be served from a stale cache.
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
       { source: "/admin/:path*", headers: noindex },
       // Shared summaries: never indexed, never cached anywhere.
       {

@@ -2,8 +2,9 @@ import { IdCard } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mediumDate } from "@/lib/dates";
-import { recordConsent } from "./actions";
-import { AddStaffForm, RegistrationActions, RoleForm } from "./forms";
+import { dayAndTime, timeOfDay } from "@/lib/dates";
+import { recordConsent, unlockAccount } from "./actions";
+import { AccountRequestActions, AddStaffForm, RegistrationActions, RoleForm } from "./forms";
 
 export const metadata = { title: "Accounts · Records office" };
 
@@ -11,7 +12,7 @@ export const metadata = { title: "Accounts · Records office" };
 export default async function AccountsPage() {
   const me = await requireAdmin();
   const supabase = await createClient();
-  const [{ data: pending }, { data: links }, { data: staff }] = await Promise.all([
+  const [{ data: pending }, { data: links }, { data: staff }, { data: locked }, { data: accountRequests }] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, email, role, hospital_no, birthdate, created_at")
@@ -24,6 +25,12 @@ export default async function AccountsPage() {
       .eq("status", "pending")
       .order("created_at"),
     supabase.from("profiles").select("id, full_name, email, role").eq("role", "admin").order("full_name"),
+    supabase.rpc("admin_locked_accounts"),
+    supabase
+      .from("account_requests")
+      .select("id, kind, new_value, requester_label, created_at, profiles!account_requests_profile_id_fkey(full_name)")
+      .eq("status", "pending")
+      .order("created_at"),
   ]);
   // Patients without a login can't approve in the app: staff record it.
   const consentNeeded = (links ?? []).filter(
@@ -56,6 +63,40 @@ export default async function AccountsPage() {
               <RegistrationActions profileId={p.id} role={p.role as "patient" | "caregiver"} hospitalNo={p.hospital_no} />
             </div>
           </article>
+        ))}
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-card border border-border bg-card p-5">
+        <h2 className="font-heading text-lg font-bold">Name changes &amp; deletion requests</h2>
+        <p className="text-caption text-muted-foreground">
+          Deleting removes the login and personal data (contact details, notifications, reminders,
+          devices, share links). The facility&apos;s medical records, requests and the audit trail are kept.
+        </p>
+        {(accountRequests ?? []).length === 0 && <p className="text-muted-foreground">Nothing waiting.</p>}
+        {(accountRequests ?? []).map((q) => (
+          <article key={q.id} className="flex flex-col gap-2 border-t border-divider pt-3">
+            <span>
+              <strong>{q.kind === "deletion" ? "Delete account" : `Change name to “${q.new_value}”`}</strong>
+              <span className="text-caption text-muted-foreground"> · {q.requester_label} · {dayAndTime(q.created_at)}</span>
+            </span>
+            <AccountRequestActions requestId={q.id} kind={q.kind as "name_change" | "deletion"} />
+          </article>
+        ))}
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-card border border-border bg-card p-5">
+        <h2 className="font-heading text-lg font-bold">Locked out (too many wrong codes)</h2>
+        {(locked ?? []).length === 0 && <p className="text-muted-foreground">No locked accounts.</p>}
+        {((locked ?? []) as { profile_id: string; full_name: string; email: string; locked_until: string }[]).map((l) => (
+          <form key={l.profile_id} action={unlockAccount} className="flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-3">
+            <input type="hidden" name="profile_id" value={l.profile_id} />
+            <span>
+              <strong>{l.full_name}</strong> · {l.email} · locked until {timeOfDay(l.locked_until)}
+            </span>
+            <button type="submit" className="h-11 rounded-field border-[1.5px] border-primary px-4 text-sm font-bold text-primary">
+              Unlock
+            </button>
+          </form>
         ))}
       </section>
 

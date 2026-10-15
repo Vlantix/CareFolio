@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { LoginNotices } from "@/components/login-notices";
+import { LiveBell } from "@/components/live-bell";
+import { FormAlert } from "@/components/ui/form-alert";
+import { WalkInForm } from "./walk-in";
 import { StatusChip } from "@/components/ui/status-chip";
 import { DueCell } from "@/components/due-cell";
 import { requireAdmin } from "@/lib/auth";
@@ -23,6 +26,8 @@ type Row = {
   is_urgent: boolean;
   due_at: string | null;
   requester_id: string;
+  channel: "online" | "walk_in";
+  walk_in_name: string | null;
   patients: { full_name: string; profile_id: string | null } | null;
   profiles: { full_name: string } | null;
 };
@@ -41,7 +46,7 @@ function summarise(rows: Row[]) {
 
 // design/AQueue.html — sorted by release deadline.
 export default async function RequestQueuePage({ searchParams }: PageProps<"/admin">) {
-  await requireAdmin();
+  const me = await requireAdmin();
   const params = await searchParams;
   const one = (k: string) => (typeof params[k] === "string" ? (params[k] as string) : "");
   const q = one("q").trim().toLowerCase();
@@ -49,13 +54,17 @@ export default async function RequestQueuePage({ searchParams }: PageProps<"/adm
   const type = one("type");
 
   const supabase = await createClient();
-  const [{ data }, { count: pendingAccounts }] = await Promise.all([
+  // Alerts for requests due within 4 hours or overdue (once each per staff member).
+  await supabase.rpc("admin_due_alerts");
+  const [{ data }, { count: pendingAccounts }, { count: unread }, { data: patientList }] = await Promise.all([
     supabase
       .from("requests")
-      .select("id, code, doc_type, detail, status, is_urgent, due_at, requester_id, patients(full_name, profile_id), profiles(full_name)")
+      .select("id, code, doc_type, detail, status, is_urgent, due_at, requester_id, channel, walk_in_name, patients(full_name, profile_id), profiles(full_name)")
       .in("status", ACTIVE)
       .order("due_at", { ascending: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("status", "pending").neq("role", "admin"),
+    supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null),
+    supabase.from("patients").select("id, full_name, hospital_no").order("full_name"),
   ]);
   const all = (data ?? []) as unknown as Row[];
   const stats = summarise(all);
@@ -76,10 +85,19 @@ export default async function RequestQueuePage({ searchParams }: PageProps<"/adm
 
   return (
     <main className="flex flex-col gap-5 px-5 py-6 md:px-8 md:py-8">
-      <div>
-        <h1 className="font-heading text-[30px] font-bold tracking-[-0.02em]">Request queue</h1>
-        <p className="mt-1 text-muted-foreground">Sorted by release deadline · 3 working days, same day if urgent</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-[30px] font-bold tracking-[-0.02em]">Request queue</h1>
+          <p className="mt-1 text-muted-foreground">Sorted by release deadline · 3 working days, same day if urgent</p>
+        </div>
+        <LiveBell userId={me.id} initialCount={unread ?? 0} href="/admin/notifications" />
       </div>
+      {typeof params.released === "string" && (
+        <FormAlert tone="info">Released with code {params.released}.</FormAlert>
+      )}
+      <WalkInForm
+        patients={(patientList ?? []).map((p) => ({ id: p.id, label: `${p.full_name} · ${p.hospital_no}` }))}
+      />
 
       <LoginNotices devicesHref="/admin/devices" />
 
@@ -155,7 +173,18 @@ export default async function RequestQueuePage({ searchParams }: PageProps<"/adm
                   </td>
                   <td className="px-4 py-3.5 font-semibold">{r.code}</td>
                   <td className="px-4 py-3.5">{r.patients?.full_name}</td>
-                  <td className="px-4 py-3.5">{self ? "Self" : `${r.profiles?.full_name ?? "—"} (caregiver)`}</td>
+                  <td className="px-4 py-3.5">
+                    {r.channel === "walk_in" ? (
+                      <>
+                        <span className="mr-1.5 rounded-md bg-info px-2 py-0.5 text-tiny font-bold text-info-foreground">WALK-IN</span>
+                        {r.walk_in_name}
+                      </>
+                    ) : self ? (
+                      "Self"
+                    ) : (
+                      `${r.profiles?.full_name ?? "—"} (caregiver)`
+                    )}
+                  </td>
                   <td className="px-4 py-3.5">{DOC_TYPES[r.doc_type]} — {r.detail}</td>
                   <td className="px-4 py-3.5"><StatusChip status={r.status} /></td>
                   <td className="px-4 py-3.5">

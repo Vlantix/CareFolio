@@ -201,6 +201,13 @@ scope:
   permissions (the records office sets them)
 
 ## Decisions to revisit
+- Account deletion removes the login and personal data but keeps medical
+  records, requests and the audit log (hospital retention duty). It
+  deletes the login with a database-owner function (no service-role
+  key); if a project refuses that, staff delete the user in the Supabase
+  dashboard.
+- The offline summary is stored on the device until the next log out
+  (or log in) on that device.
 - Staff changes are audited by database triggers (old -> new values),
   so no admin screen can skip logging.
 - Released PDFs are limited to 4 MB (Vercel's request size cap).
