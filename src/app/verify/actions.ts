@@ -54,6 +54,11 @@ export async function sendCode(): Promise<SendState> {
   });
   if (issueError) {
     console.error("sendCode: issue_login_code failed:", issueError.code, issueError.message);
+    // 23503: this login has no row in profiles (supabase/sql/015 fixes it).
+    if (issueError.code === "23503") {
+      console.error("sendCode: profile missing for user", login.userId);
+      return { error: "Your account isn't fully set up yet. Please contact the records office." };
+    }
     return { error: "We couldn't send the code. Please try again in a minute." };
   }
   if (wait === -1) {
