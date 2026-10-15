@@ -11,11 +11,13 @@
   --card: #ffffff;
   --card-foreground: #10292c;
   --muted-foreground: #4b6164; /* secondary text */
+  --body-text: #2a4346; /* long reading text, e.g. the terms */
 
   /* Brand */
   --primary: #0b6e69; /* teal: main buttons and links */
   --primary-hover: #08524e;
   --primary-foreground: #ffffff;
+  --on-primary-muted: #d7eeeb; /* softer text on teal panels */
   --primary-soft: #e3f1ef; /* teal tint behind info boxes */
   --primary-deep: #0b4a46; /* text on --primary-soft */
   --navy: #0e293c; /* the logo background */
@@ -30,6 +32,7 @@
   --accent: #c2611a;
   --attention: #fdf0e1;
   --attention-foreground: #8a4209;
+  --attention-icon: #a9520f; /* orange icons on --attention */
 
   /* Other status colours */
   --info: #e8eef7;
@@ -56,9 +59,11 @@
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-muted-foreground: var(--muted-foreground);
+  --color-body-text: var(--body-text);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
+  --color-on-primary-muted: var(--on-primary-muted);
   --color-primary-soft: var(--primary-soft);
   --color-primary-deep: var(--primary-deep);
   --color-navy: var(--navy);
@@ -69,6 +74,7 @@
   --color-accent: var(--accent);
   --color-attention: var(--attention);
   --color-attention-foreground: var(--attention-foreground);
+  --color-attention-icon: var(--attention-icon);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-danger: var(--danger);

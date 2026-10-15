@@ -46,8 +46,9 @@ Keeping account linking with the records office is what keeps it small.
 
 ## Screens
 **Patient and caregiver (mobile first, also works on desktop)**
-1. **Sign up**: enter full name, email, password, and whether you are
-   the patient or a caregiver. You then see a message that the records
+1. **Sign up**: choose patient or caregiver, then enter full name, date
+   of birth, email, mobile number (09XXXXXXXXX), password and,
+   optionally, the patient's hospital number. Home then says the records
    office will link your account.
 2. **Log in**: enter email and password.
 3. **Email code**: type the 6-digit code emailed to you.
@@ -72,15 +73,18 @@ Keeping account linking with the records office is what keeps it small.
 11. **Link accounts**: accounts not yet linked to anyone. Enter a
     hospital number, choose self or caregiver, and link.
 
-Admins use the same login as everyone else and land on the request
-queue. The approved designs for each screen are in the design folder.
+Admins log in on a separate staff page, reached only by typing
+/admin/login and never linked from anywhere. They pass the same email
+code and land on the request queue. Anyone who isn't an admin gets an
+ordinary "page not found" for every /admin address. The approved designs for each screen are in the design folder.
 
 ## Data
 Row Level Security is ON for every table. No service-role key is used
 anywhere. Admins are set by hand in the Supabase dashboard.
 
-- **profiles**: id (the login account), email, full_name, role
-  (patient, caregiver or admin), terms_accepted_at, created_at.
+- **profiles**: id (the login account), email, full_name, phone,
+  birthdate, hospital_no (optional hint for linking), role (patient,
+  caregiver or admin), terms_accepted_at, created_at.
   - Read: your own row. Admins read all.
   - Write: created automatically at sign-up, and never as admin. You may
     update only your own name and terms date. Only admins can change
@@ -148,8 +152,8 @@ On the LIVE URL:
   prescription copy, discharge summary, medical abstract)
 - A separate records list or timeline screen (released results open
   from My requests)
-- The loading screen, the 3-step guide, the splash animation and the
-  separate admin login page
+- The loading screen, the 3-step guide and the splash animation
+- ID photo upload and OCR, wrong-code lockout, device sessions
 - Caregivers linking themselves, in-app consent forms, permission
   toggles
 - Share links and QR codes, the doctor view, verifying a document

@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Keep the staff area out of search engines. (Not listed in robots.txt
+  // on purpose: that file is public and would advertise the URL.)
+  async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+    return [
+      { source: "/admin", headers: noindex },
+      { source: "/admin/:path*", headers: noindex },
+    ];
+  },
+
   // Cache Components and Partial Prefetching are deliberately OFF.
   //
   // With them on, any page that reads from the database (or uses

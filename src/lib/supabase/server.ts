@@ -10,6 +10,9 @@ import { cookies } from "next/headers";
  * project: it bypasses Row Level Security entirely.
  */
 export async function createClient() {
+  // Read cookies first: any page using this then renders per request
+  // (never pre-built at deploy time, when there is no logged-in user).
+  const cookieStore = await cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -20,8 +23,6 @@ export async function createClient() {
         "Supabase project (click Connect). Add them in Vercel too.",
     );
   }
-
-  const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {
     cookies: {

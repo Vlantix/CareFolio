@@ -16,7 +16,7 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground hover:bg-primary-hover hover:text-primary-foreground",
         secondary:
-          "bg-primary-soft text-primary-deep hover:bg-[#d3e9e6] hover:text-primary-deep",
+          "bg-primary-soft text-primary-deep hover:brightness-95 hover:text-primary-deep",
         outline:
           "border border-border bg-card text-foreground hover:bg-primary-soft hover:text-foreground",
         ghost: "text-primary hover:bg-primary-soft hover:text-primary-hover",
