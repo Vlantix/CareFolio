@@ -1,6 +1,9 @@
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { BellRing, LogOut, X } from "lucide-react";
 import { requireMember } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/actions/logout";
+import { dismissNotification } from "./actions";
 
 export const metadata = { title: "Home · CareFolio" };
 
@@ -26,6 +29,13 @@ function initials(name: string) {
 // Linked patients and requests arrive in tickets 04 and 05.
 export default async function HomePage() {
   const profile = await requireMember();
+  const supabase = await createClient();
+  const { data: notices } = await supabase
+    .from("notifications")
+    .select("id, title, body, link")
+    .is("read_at", null)
+    .order("created_at", { ascending: false })
+    .limit(3);
   const firstName = profile.full_name.split(/\s+/)[0];
   const today = new Intl.DateTimeFormat("en-PH", {
     weekday: "long",
@@ -66,6 +76,35 @@ export default async function HomePage() {
           {greeting()}, {firstName}
         </h1>
       </div>
+
+      {/* New-login notices (and, later, other alerts). */}
+      {(notices ?? []).map((n) => (
+        <div
+          key={n.id}
+          role="status"
+          className="flex items-start gap-3 rounded-tile bg-attention p-3.5 text-attention-foreground"
+        >
+          <BellRing size={22} strokeWidth={1.8} aria-hidden className="mt-0.5 shrink-0 text-attention-icon" />
+          <p className="flex-1 text-sm">
+            <strong>{n.title}.</strong> {n.body}{" "}
+            {n.link && (
+              <Link href={n.link} className="font-semibold text-attention-foreground underline">
+                Review devices
+              </Link>
+            )}
+          </p>
+          <form action={dismissNotification}>
+            <input type="hidden" name="id" value={n.id} />
+            <button
+              type="submit"
+              aria-label="Dismiss"
+              className="-m-2.5 flex size-11 items-center justify-center rounded-field hover:bg-black/5"
+            >
+              <X size={18} aria-hidden />
+            </button>
+          </form>
+        </div>
+      ))}
 
       <div className="rounded-field bg-primary-soft px-3.5 py-3 text-sm text-primary-deep">
         <strong>Waiting for the records office.</strong> They will link your

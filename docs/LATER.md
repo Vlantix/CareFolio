@@ -15,7 +15,6 @@ stays small enough to actually ship by Session 3.
 - Share links with QR codes and access codes, doctor view, and the
   public "verify a document" page
 - Health summary: medications, allergies, diagnoses, lab values
-- Reminders (appointments, refills, labs), the notifications inbox
 - Correction requests
 - Admin audit page, reports, account approval with ID upload and OCR
 - Urgent requests and working-day due dates
@@ -34,17 +33,14 @@ stays small enough to actually ship by Session 3.
 - ID scanner on sign-up: camera capture, tesseract.js OCR, pre-fill,
   upload to a private ids bucket (no "Add a photo of your valid ID"
   button until then)
-- Lockout after 5 wrong codes (otp_attempts, locked_until) — to be done
-  with a security definer function, never the service role
-- user_sessions table: device labels, revoking a device on logout
 - /loading and /welcome onboarding screens
-- Audit rows for login events (account.created, auth.otp_passed,
-  admin.login) — the audit_logs table arrives in ticket 04
+- Audit rows for account.created and admin.login (the otp, lock and
+  session events are logged since phase 3)
+- Admin "Unlock" button for a locked account (phase 7.5)
+- Reminders (appointments, refills, labs) and a full notifications inbox
+  (today only the new-login notice shows on Home)
 
 ## Parked during /code-review
 
 - Supabase built-in MFA (aal2), so a stolen mailbox alone can't log in
   (today the database requires the email code, but not the password too)
-- Phase 3 hardening: our own send limits (5 codes/hour), 5-wrong-codes
-  lockout, device sessions page, new-login notifications, 15-minute
-  idle auto-lock

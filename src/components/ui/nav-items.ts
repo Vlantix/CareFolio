@@ -1,4 +1,4 @@
-import { House, Inbox, Link2, List, type LucideIcon } from "lucide-react";
+import { House, Inbox, Link2, List, MonitorSmartphone, type LucideIcon } from "lucide-react";
 
 // Shared by the client-side BottomNav and Sidebar. Holds NO menu
 // addresses: the menus themselves live in src/lib/menus.ts (server only),
@@ -9,6 +9,7 @@ export const navIcons = {
   list: List,
   inbox: Inbox,
   link: Link2,
+  devices: MonitorSmartphone,
 } satisfies Record<string, LucideIcon>;
 
 export interface NavItem {

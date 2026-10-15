@@ -36,7 +36,10 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  /** React 19 passes `ref` as a normal prop; used to move focus. */
+  ref?: React.Ref<HTMLButtonElement>;
+}
 
 export function Button({
   className,

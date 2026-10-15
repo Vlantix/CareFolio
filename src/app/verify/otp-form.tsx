@@ -7,8 +7,16 @@ import { cn } from "@/lib/utils";
 import { sendCode, verifyCode, type VerifyState } from "./actions";
 
 const COOLDOWN = 60;
+
 /** Six digit boxes + resend timer (design/Otp.html, DVerify.html). */
-export function OtpForm({ loginId }: { loginId: string }) {
+export function OtpForm({
+  loginId,
+  lockedMessage,
+}: {
+  loginId: string;
+  /** Set when too many wrong codes have locked code entry. */
+  lockedMessage?: string;
+}) {
   // One timer per login, so logging in again always sends a fresh code.
   const SENT_KEY = `cf_code_sent_at:${loginId}`;
   const [state, action, pending] = useActionState<VerifyState, FormData>(verifyCode, {});
@@ -25,17 +33,19 @@ export function OtpForm({ loginId }: { loginId: string }) {
     const result = await sendCode();
     setSending(false);
     if (result.error) setSendError(result.error);
-    // Start the timer either way: Supabase also limits one code a minute.
+    // The server says how long to wait when a limit is hit; otherwise
+    // start the normal one-minute timer.
+    const wait = result.waitSeconds ?? COOLDOWN;
     try {
-      sessionStorage.setItem(SENT_KEY, String(Date.now()));
+      sessionStorage.setItem(SENT_KEY, String(Date.now() - (COOLDOWN - wait) * 1000));
     } catch {}
-    setSecondsLeft(COOLDOWN);
+    setSecondsLeft(wait);
   }
 
   // Send the code automatically on arrival — but not again if the page
   // was just reloaded inside the cooldown.
   useEffect(() => {
-    if (autoSent.current) return;
+    if (autoSent.current || lockedMessage) return;
     autoSent.current = true;
     let sentAt = 0;
     try {
@@ -82,15 +92,17 @@ export function OtpForm({ loginId }: { loginId: string }) {
   }
 
   const code = digits.join("");
+  // Locked on arrival, or by the wrong code just entered.
+  const locked = Boolean(lockedMessage || state.locked);
   const mm = Math.floor(secondsLeft / 60);
   const ss = String(secondsLeft % 60).padStart(2, "0");
 
   return (
     <form action={action} className="flex flex-col gap-[18px]">
       <input type="hidden" name="token" value={code} />
-      <FormAlert>{state.error ?? sendError}</FormAlert>
+      <FormAlert>{state.error ?? lockedMessage ?? sendError}</FormAlert>
 
-      <fieldset className="flex flex-col gap-3">
+      <fieldset className="flex flex-col gap-3" disabled={locked}>
         <legend className="mb-2.5 text-sm font-semibold">Verification code</legend>
         <div className="grid grid-cols-6 gap-2 lg:gap-2.5">
           {digits.map((d, i) => (
@@ -123,7 +135,7 @@ export function OtpForm({ loginId }: { loginId: string }) {
               }}
               onFocus={(e) => e.target.select()}
               className={cn(
-                "h-[60px] min-w-0 rounded-field border-[1.5px] bg-card text-center font-heading text-2xl font-bold text-foreground lg:h-16 lg:text-[26px]",
+                "h-[60px] min-w-0 rounded-field disabled:opacity-50 border-[1.5px] bg-card text-center font-heading text-2xl font-bold text-foreground lg:h-16 lg:text-[26px]",
                 "focus:border-[2.5px] focus:border-accent focus:outline-none",
                 d ? "border-primary" : "border-input",
               )}
@@ -132,7 +144,7 @@ export function OtpForm({ loginId }: { loginId: string }) {
         </div>
       </fieldset>
 
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+      <p className={cn("text-sm text-muted-foreground", locked && "hidden")} aria-live="polite">
         Didn&apos;t get it? Check your spam folder
         {secondsLeft > 0 ? (
           <>
@@ -157,7 +169,7 @@ export function OtpForm({ loginId }: { loginId: string }) {
         .
       </p>
 
-      <Button type="submit" size="lg" disabled={pending || code.length !== 6}>
+      <Button type="submit" size="lg" disabled={locked || pending || code.length !== 6}>
         {pending ? "Checking…" : "Verify code"}
       </Button>
     </form>

@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { MFA_COOKIE, isMfaTokenValid } from "@/lib/mfa";
+import { MFA_COOKIE, isSessionLive, readMfaToken } from "@/lib/mfa";
 
 /**
  * Runs before every page (see src/proxy.ts). Two jobs:
@@ -53,9 +53,13 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   };
 
-  const mfa = userId
-    ? await isMfaTokenValid(request.cookies.get(MFA_COOKIE)?.value, userId)
-    : false;
+  const sessionId = userId
+    ? await readMfaToken(request.cookies.get(MFA_COOKIE)?.value, userId)
+    : null;
+  const mfa = sessionId ? await sessionStillLive(supabase, sessionId) : false;
+  // A logged-out (revoked) or expired device: drop its cookie so the user
+  // goes back through /verify.
+  if (sessionId && !mfa) response.cookies.delete(MFA_COOKIE);
 
   // Open to everyone.
   if (isPublic(path)) {
@@ -92,6 +96,33 @@ export async function updateSession(request: NextRequest) {
   }
 
   return response;
+}
+
+// Remembers recent "is this device session still live?" answers for 60
+// seconds, so most page loads don't need a database lookup. Pages re-check
+// without the cache (requireMember / requireAdmin), so a remote log out
+// takes effect there immediately.
+const sessionCache = new Map<string, { live: boolean; at: number }>();
+const CACHE_MS = 60_000;
+
+async function sessionStillLive(
+  supabase: ReturnType<typeof createServerClient>,
+  sessionId: string,
+) {
+  const hit = sessionCache.get(sessionId);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.live;
+
+  const { data } = await supabase
+    .from("user_sessions")
+    .select("created_at, revoked_at")
+    .eq("id", sessionId)
+    .maybeSingle();
+  const live = isSessionLive(data);
+  sessionCache.set(sessionId, { live, at: Date.now() });
+  // "Last seen" — the database only writes it once every 5 minutes.
+  if (live) await supabase.rpc("touch_session", { p_session_id: sessionId });
+  if (sessionCache.size > 5000) sessionCache.clear();
+  return live;
 }
 
 const PUBLIC_PATHS = new Set([

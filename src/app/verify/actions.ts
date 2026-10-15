@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -10,6 +10,7 @@ import {
   mfaCookieOptions,
 } from "@/lib/mfa";
 import { otpSchema } from "@/lib/validation";
+import { deviceLabel, phTime, waitText } from "@/lib/device";
 
 // The code must follow a password login made in the last 30 minutes.
 // Without this, someone with only access to the mailbox could ask
@@ -33,12 +34,33 @@ async function currentLogin() {
   return { supabase, userId: claims.sub, email: claims.email, passwordRecently };
 }
 
-export type SendState = { sent?: boolean; error?: string };
+export type SendState = { sent?: boolean; error?: string; waitSeconds?: number };
 
-/** Emails a 6-digit code to the logged-in user. */
+/** Locked out after too many wrong codes? Returns a message, or null. */
+async function lockMessage(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: lockedUntil } = await supabase.rpc("otp_locked_until");
+  if (!lockedUntil) return null;
+  return `Too many wrong codes. You can try again at ${phTime(lockedUntil)}.`;
+}
+
+/** Emails a 6-digit code to the logged-in user, within the send limits. */
 export async function sendCode(): Promise<SendState> {
   const login = await currentLogin();
   if (!login) return { error: "Your login has expired. Please log in again." };
+
+  const locked = await lockMessage(login.supabase);
+  if (locked) return { error: locked };
+
+  // Our limits (1 a minute, 5 an hour), checked and recorded in the
+  // database. The code itself is never stored or logged.
+  const { data: wait, error: limitError } = await login.supabase.rpc("otp_send_check");
+  if (limitError) return { error: "We couldn't send the code. Please try again in a minute." };
+  if (wait > 0) {
+    return {
+      error: `To keep your account safe, codes are limited. You can ask for a new one in ${waitText(wait)}.`,
+      waitSeconds: wait,
+    };
+  }
 
   const { error } = await login.supabase.auth.signInWithOtp({
     email: login.email,
@@ -47,14 +69,14 @@ export async function sendCode(): Promise<SendState> {
   });
   if (error) {
     if (error.status === 429 || error.code?.includes("rate_limit")) {
-      return { error: "A code was sent a moment ago. Wait a minute before asking for another." };
+      return { error: "A code was sent a moment ago. Wait a minute before asking for another.", waitSeconds: 60 };
     }
     return { error: "We couldn't send the code. Please try again in a minute." };
   }
   return { sent: true };
 }
 
-export type VerifyState = { error?: string };
+export type VerifyState = { error?: string; locked?: boolean };
 
 export async function verifyCode(_prev: VerifyState, form: FormData): Promise<VerifyState> {
   const parsed = otpSchema.safeParse(form.get("token"));
@@ -64,17 +86,39 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
   if (!login || !login.passwordRecently) redirect("/login?notice=expired");
 
   const { supabase, userId, email } = login;
+
+  const locked = await lockMessage(supabase);
+  if (locked) return { error: locked, locked: true };
+
   const { data, error } = await supabase.auth.verifyOtp({
     email,
     token: parsed.data,
     type: "email",
   });
   if (error || data.user?.id !== userId) {
+    // Count it; the 5th wrong code within 15 minutes locks code entry.
+    const { data: lockedUntil } = await supabase.rpc("otp_note_failed");
+    if (lockedUntil) {
+      return {
+        error: `Too many wrong codes. You can try again at ${phTime(lockedUntil)}.`,
+        locked: true,
+      };
+    }
     return { error: "That code is wrong or has expired. Check it, or send a new one." };
   }
 
+  // Correct code: start this device's session (also posts the
+  // "New login" notice and the audit row), then remember it in cf_mfa.
+  const device = deviceLabel((await headers()).get("user-agent"));
+  const { data: sessionId, error: sessionError } = await supabase.rpc("start_session", {
+    p_device_label: device,
+  });
+  if (sessionError || !sessionId) {
+    return { error: "We couldn't finish logging you in. Please try again." };
+  }
+
   const cookieStore = await cookies();
-  cookieStore.set(MFA_COOKIE, await createMfaToken(userId), mfaCookieOptions);
+  cookieStore.set(MFA_COOKIE, await createMfaToken(userId, sessionId), mfaCookieOptions);
 
   // Staff login (started on /admin/login): only real admins get through.
   if (cookieStore.get(PORTAL_COOKIE)?.value === "staff") {
@@ -86,6 +130,7 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
       .maybeSingle();
     if (profile?.role !== "admin") {
       // Same message as a wrong password: never confirm the portal exists.
+      await supabase.rpc("revoke_session", { p_session_id: sessionId });
       await supabase.auth.signOut();
       cookieStore.delete(MFA_COOKIE);
       redirect("/admin/login?failed=1");

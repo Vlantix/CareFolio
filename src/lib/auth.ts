@@ -2,7 +2,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MFA_COOKIE, isMfaTokenValid } from "@/lib/mfa";
+import { MFA_COOKIE, isSessionLive, readMfaToken } from "@/lib/mfa";
 
 export type Profile = {
   id: string;
@@ -25,9 +25,20 @@ export const getAuthState = cache(async () => {
   // (unlike getSession, which just reads the cookie).
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
-  if (!userId) return { userId: null, mfa: false, profile: null } as const;
+  if (!userId) return { userId: null, mfa: false, sessionId: null, profile: null } as const;
 
-  const mfa = await isMfaTokenValid(cookieStore.get(MFA_COOKIE)?.value, userId);
+  // Passed the code on this device, and that device session is still live
+  // (not logged out from the Sessions page, not older than 12 hours).
+  const sessionId = await readMfaToken(cookieStore.get(MFA_COOKIE)?.value, userId);
+  let mfa = false;
+  if (sessionId) {
+    const { data: session } = await supabase
+      .from("user_sessions")
+      .select("created_at, revoked_at")
+      .eq("id", sessionId)
+      .maybeSingle();
+    mfa = isSessionLive(session);
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -35,7 +46,7 @@ export const getAuthState = cache(async () => {
     .eq("id", userId)
     .maybeSingle<Profile>();
 
-  return { userId, mfa, profile } as const;
+  return { userId, mfa, sessionId: mfa ? sessionId : null, profile } as const;
 });
 
 /**

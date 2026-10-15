@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { requireAdmin } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
 import { adminNav } from "@/lib/menus";
+import { IdleLogout } from "@/components/idle-logout";
 
 export const metadata: Metadata = {
   title: "Records office · CareFolio",
@@ -33,6 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         }
       />
       <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <IdleLogout staff />
     </div>
   );
 }

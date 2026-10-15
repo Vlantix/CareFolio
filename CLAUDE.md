@@ -96,7 +96,10 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   download records. They never upload or edit them. Only admins change
   records.
 - **Audit:** every action that touches patient data writes a row to
-  `audit_logs` through the database function, never directly.
+  `audit_logs`. `log_event()` is NOT callable from the app (so nobody can
+  forge rows): write a purpose-made security definer function that does
+  the change AND calls `log_event()`, as in
+  `supabase/sql/004-otp-limits-sessions-audit.sql`.
 - **Email code in the database:** every RLS policy on patient data
   includes `(select public.passed_email_code()) and …` (see
   `supabase/sql/003-require-email-code.sql`).

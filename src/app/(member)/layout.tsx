@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { requireMember } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
 import { memberNav } from "@/lib/menus";
+import { IdleLogout } from "@/components/idle-logout";
 
 // The logged-in app for patients and caregivers: dark sidebar on
 // desktop, tab bar along the bottom on phones (design/DHome, Home).
@@ -29,6 +30,7 @@ export default async function MemberLayout({ children }: { children: React.React
         <div className="flex flex-1 flex-col">{children}</div>
         <BottomNav items={memberNav} />
       </div>
+      <IdleLogout />
     </div>
   );
 }

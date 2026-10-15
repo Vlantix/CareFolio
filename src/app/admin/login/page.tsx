@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
+import { FormAlert } from "@/components/ui/form-alert";
 import { StaffLoginForm } from "./staff-login-form";
 
 // Reached ONLY by typing /admin/login. Never link to it from anything a
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 
 // design/DAdminLogin.html
 export default async function StaffLoginPage({ searchParams }: PageProps<"/admin/login">) {
-  const { failed } = await searchParams;
+  const { failed, idle } = await searchParams;
 
   return (
     <main className="cf-enter flex min-h-full flex-1 flex-col items-center justify-center bg-navy px-4 py-12 sm:px-6">
@@ -41,6 +42,9 @@ export default async function StaffLoginPage({ searchParams }: PageProps<"/admin
           </p>
         </div>
 
+        {idle === "1" && failed !== "1" && (
+          <FormAlert tone="info">You were logged out after 15 minutes without activity.</FormAlert>
+        )}
         <StaffLoginForm failed={failed === "1"} />
 
         <p className="text-center text-sm text-muted-foreground">

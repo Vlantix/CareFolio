@@ -9,6 +9,7 @@ export const metadata = { title: "Log in · CareFolio" };
 const NOTICES: Record<string, string> = {
   reset: "Your password was changed. Log in with the new one.",
   expired: "Please log in again to get a new code.",
+  idle: "You were logged out after 15 minutes without activity.",
 };
 
 const POINTS = [
