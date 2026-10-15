@@ -4,7 +4,7 @@ import { sendCodeEmail, sendLinkEmail } from "@/lib/email";
 
 // Supabase "Send Email Hook": instead of sending auth emails itself,
 // Supabase calls this address with the code (or link details) and we
-// send the email through Resend.
+// send the email ourselves — through Gmail or Resend (src/lib/email.ts).
 //
 // Set up in Supabase → Authentication → Hooks → Send Email (HTTPS):
 //   URL:    https://<your site>/api/auth/send-email
@@ -115,9 +115,9 @@ export async function POST(request: NextRequest) {
   }
 
   if (!result.ok) {
-    // Shows up in Vercel → Logs. Common: "only send testing emails to your
-    // own email address" while using the resend.dev test sender.
-    console.error("send-email hook: Resend refused:", result.error);
+    // Shows up in Vercel → Logs, e.g. a wrong Gmail App Password, or
+    // Resend's "testing emails to your own email address".
+    console.error("send-email hook: email refused:", result.error);
     return hookError(502, result.error);
   }
   return NextResponse.json({});

@@ -45,7 +45,9 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `VERIFY_COOKIE_SECRET` | **Yes** — server only | Signs the "passed the email code" cookie. At least 32 random characters | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
 | `NEXT_PUBLIC_SITE_URL` | No | The live address, used in share-link QR codes and the stamp on released PDFs | e.g. `https://hackathon-f1-forge.vercel.app` |
 | `NEXT_PUBLIC_FACILITY_NAME` | No | The partner hospital's name shown on screens | e.g. `Partner Hospital` |
-| `RESEND_API_KEY` | **Yes** — server only | Sends login codes and reset links through Resend | Resend → API Keys ("Sending access" is enough) |
+| `GMAIL_USER` | No (server only) | The team Gmail that sends login codes. Free, reaches any inbox (~500/day). Used when set | e.g. `carefolio.codes@gmail.com` |
+| `GMAIL_APP_PASSWORD` | **Yes** — server only | 16-letter App Password for that Gmail (needs 2-Step Verification) | myaccount.google.com/apppasswords |
+| `RESEND_API_KEY` | **Yes** — server only | Alternative sender (used only if the Gmail pair isn't set) | Resend → API Keys ("Sending access" is enough) |
 | `RESEND_FROM_EMAIL` | No (server only) | Sender address. On `…@resend.dev`, Resend only delivers to the Resend account owner's email — verify a domain to email anyone | e.g. `codes@yourdomain.com` |
 | `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Proves emails requests really come from Supabase | Shown when you create the Send Email Hook (step 4) |
 
@@ -88,9 +90,10 @@ All demo data is **fake**. Never put real patient data in a demo.
   `<live URL>/api/auth/send-email`. Generate the secret, put it in
   `SEND_EMAIL_HOOK_SECRET` (Vercel + `.env.local`) and redeploy. From then
   on Supabase doesn't send auth emails itself: it hands each code or link
-  to our endpoint, which sends it through **Resend** with your
-  `RESEND_API_KEY`. (No SMTP setup needed.) Refused emails show their
-  reason in Vercel → Logs.
+  to our endpoint, which sends it through **Gmail** (`GMAIL_USER` +
+  `GMAIL_APP_PASSWORD`) or, if those aren't set, **Resend**. No SMTP
+  setup in Supabase needed. Refused emails show their reason in Vercel →
+  Logs.
 
 ### 5. Make the first staff account
 

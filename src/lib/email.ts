@@ -1,25 +1,52 @@
 import "server-only";
+import nodemailer from "nodemailer";
 import { Resend } from "resend";
 
-// Emails CareFolio sends through Resend (the team's email vendor).
-// Server-only: RESEND_API_KEY is a secret and never a NEXT_PUBLIC_ variable.
+// Emails CareFolio sends: login codes and account links.
 //
-// NOTE: while RESEND_FROM_EMAIL is on Resend's test domain (…@resend.dev),
-// Resend only delivers to the email address that owns the Resend account.
-// To email anyone else, verify your own domain in Resend → Domains.
+// Two ways to send, chosen by which settings exist (server-only secrets,
+// never NEXT_PUBLIC_):
+//   1. Gmail — GMAIL_USER + GMAIL_APP_PASSWORD. Free, reaches ANY inbox
+//      (about 500 a day). Used whenever these two are set.
+//   2. Resend — RESEND_API_KEY + RESEND_FROM_EMAIL. While the sender is
+//      on resend.dev, Resend only delivers to the Resend account owner's
+//      own inbox; it needs a verified domain to reach everyone.
 
-let client: Resend | null = null;
-function resend() {
+type Sender = (to: string, subject: string, html: string, text: string) => Promise<SentResult>;
+
+let sendVia: Sender | null = null;
+
+function pickSender(): Sender {
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailPass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
+  if (gmailUser && gmailPass) {
+    const transport = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
+    });
+    return async (to, subject, html, text) => {
+      try {
+        await transport.sendMail({ from: `CareFolio <${gmailUser}>`, to, subject, html, text });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: `Gmail: ${e instanceof Error ? e.message : String(e)}` };
+      }
+    };
+  }
+
   const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error("RESEND_API_KEY is missing (add it to .env.local and Vercel).");
-  client ??= new Resend(key);
-  return client;
-}
-
-function sender() {
   const from = process.env.RESEND_FROM_EMAIL;
-  if (!from) throw new Error("RESEND_FROM_EMAIL is missing (add it to .env.local and Vercel).");
-  return from.includes("<") ? from : `CareFolio <${from}>`;
+  if (!key || !from) {
+    throw new Error("No email sender configured: set GMAIL_USER + GMAIL_APP_PASSWORD (or RESEND_API_KEY + RESEND_FROM_EMAIL).");
+  }
+  const resend = new Resend(key);
+  const sender = from.includes("<") ? from : `CareFolio <${from}>`;
+  return async (to, subject, html, text) => {
+    const { error } = await resend.emails.send({ from: sender, to, subject, html, text });
+    return error ? { ok: false, error: `Resend: ${error.name}: ${error.message}` } : { ok: true };
+  };
 }
 
 const escape = (s: string) =>
@@ -44,10 +71,9 @@ If you didn't try to sign in, you can ignore it — your account is safe.</p>
 
 export type SentResult = { ok: true } | { ok: false; error: string };
 
-async function deliver(to: string, subject: string, html: string, text: string): Promise<SentResult> {
-  const { error } = await resend().emails.send({ from: sender(), to, subject, html, text });
-  if (error) return { ok: false, error: `${error.name}: ${error.message}` };
-  return { ok: true };
+function deliver(to: string, subject: string, html: string, text: string): Promise<SentResult> {
+  sendVia ??= pickSender();
+  return sendVia(to, subject, html, text);
 }
 
 /** The 6-digit login / sign-up code. */
