@@ -9,7 +9,8 @@ stays small enough to actually ship by Session 3.
 ## Parked during /grill-with-docs
 
 - Editing per-caregiver permission toggles (can request / view / share)
-- Admin audit page, reports, account approval with ID upload and OCR
+- ID photo upload and OCR at sign-up (staff check ID in person for now)
+- Separate staff roles (super admin / records officer / viewer)
 
 ## Parked during /to-spec
 
@@ -23,6 +24,7 @@ stays small enough to actually ship by Session 3.
 - Audit rows for account.created and admin.login (the otp, lock and
   session events are logged since phase 3)
 - Admin "Unlock" button for a locked account (phase 7.5)
+- PDFs over 4 MB (would need direct-to-storage upload)
 
 ## Parked during /code-review
 
@@ -39,6 +41,3 @@ stays small enough to actually ship by Session 3.
 
 ## Still parked after phase 5
 
-- Admin screens to approve accounts, link caregivers, and record consent
-  for patients who have no login (until then: the SQL lines at the end
-  of supabase/sql/007-patients-records-requests.sql)

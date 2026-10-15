@@ -77,4 +77,16 @@ export function latestPerTest<T extends { test_name: string }>(rows: T[]): T[] {
   return rows.filter((r) => !seen.has(r.test_name) && seen.add(r.test_name));
 }
 
+/** "Overdue 1d" / "4h left" / "1d 6h" for a deadline. */
+export function dueLabel(dueAt: string | null, now: number) {
+  if (!dueAt) return { text: "—", overdue: false };
+  const ms = new Date(dueAt).getTime() - now;
+  const abs = Math.abs(ms);
+  const d = Math.floor(abs / 86_400_000);
+  const h = Math.floor((abs % 86_400_000) / 3_600_000);
+  const m = Math.floor((abs % 3_600_000) / 60_000);
+  const span = d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return ms < 0 ? { text: `Overdue ${span}`, overdue: true } : { text: d > 0 ? span : `${span} left`, overdue: false };
+}
+
 export { shortDate } from "@/lib/dates";

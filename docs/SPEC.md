@@ -199,9 +199,12 @@ scope:
 - ID photo upload and OCR
 - Caregivers linking themselves without an invite; editing caregiver
   permissions (the records office sets them)
-- Admin audit page, reports, adding patients from the app
 
 ## Decisions to revisit
+- Staff changes are audited by database triggers (old -> new values),
+  so no admin screen can skip logging.
+- Released PDFs are limited to 4 MB (Vercel's request size cap).
+- Account approval checks ID in person: the ID photo/OCR step is parked.
 - Shared links: a public page reads them through a database function
   (no service-role key). The verify page's per-IP limit relies on the
   address our server passes in; an overall cap backs it up.

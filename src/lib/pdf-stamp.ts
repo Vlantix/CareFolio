@@ -33,3 +33,22 @@ export async function stampPdf(bytes: ArrayBuffer, line: string) {
   }
   return pdf.save();
 }
+
+/** Largest PDF staff can upload (Vercel accepts at most ~4.5 MB per request). */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+/**
+ * The records office's release stamp: a footer line on every page,
+ * e.g. "Verify at https://…/verify-document  Code CF-7Q4K-92XM".
+ */
+export async function stampReleaseFooter(bytes: ArrayBuffer, line: string) {
+  const text = line.replace(/[^\x20-\x7E\u00A0-\u00FF]/g, "?");
+  const pdf = await PDFDocument.load(bytes);
+  const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+  for (const page of pdf.getPages()) {
+    const { width } = page.getSize();
+    page.drawRectangle({ x: 0, y: 0, width, height: 30, color: rgb(1, 1, 1), opacity: 0.9 });
+    page.drawText(text, { x: 24, y: 11, size: 8.5, font, color: TEAL });
+  }
+  return pdf.save();
+}

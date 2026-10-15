@@ -33,5 +33,9 @@ export const memberSidebar: NavItem[] = [
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "Request queue", icon: "inbox" },
   { href: "/admin/corrections", label: "Corrections", icon: "list" },
+  { href: "/admin/patients", label: "Patient records", icon: "records" },
+  { href: "/admin/audit", label: "Audit trail", icon: "summary" },
+  { href: "/admin/reports", label: "Reports", icon: "summary" },
+  { href: "/admin/accounts", label: "Accounts", icon: "family" },
   { href: "/admin/devices", label: "Devices", icon: "devices" },
 ];

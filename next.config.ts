@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Staff upload PDFs through server actions. Vercel accepts at most
+  // ~4.5 MB per request, so the app limits PDFs to 4 MB.
+  experimental: {
+    serverActions: { bodySizeLimit: "4.5mb" },
+  },
   // Keep the staff area out of search engines. (Not listed in robots.txt
   // on purpose: that file is public and would advertise the URL.)
   async headers() {
