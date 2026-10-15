@@ -101,8 +101,12 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   the change AND calls `log_event()`, as in
   `supabase/sql/004-otp-limits-sessions-audit.sql`.
 - **Email code in the database:** every RLS policy on patient data
-  includes `(select public.passed_email_code()) and …` (see
-  `supabase/sql/003-require-email-code.sql`).
+  includes `(select public.passed_email_code()) and …`. Since
+  `006-device-bound-access.sql` this also requires the device's
+  session to be live, so logging a device out cuts its data access.
+  Only `start_session()` uses the token-only `token_has_email_code()`.
+- **Sign out with `scope: "local"`** (this device only); use
+  `scope: "others"` only for "Log out all other devices".
 - **Every server action checks first:** admin actions start with
   `await requireAdmin()`, member actions with `await requireMember()`.
   The proxy's redirects and 404s do not protect server actions.

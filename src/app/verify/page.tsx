@@ -4,9 +4,8 @@ import { redirect } from "next/navigation";
 import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { BackButton } from "@/components/ui/page-header";
-import { createClient } from "@/lib/supabase/server";
+import { currentLogin } from "@/lib/login";
 import { PORTAL_COOKIE } from "@/lib/mfa";
-import { phTime } from "@/lib/device";
 import { OtpForm } from "./otp-form";
 
 export const metadata = { title: "Check your email · CareFolio" };
@@ -19,25 +18,24 @@ function maskEmail(email: string) {
 
 // design/Otp.html (mobile) and design/DVerify.html (desktop).
 export default async function VerifyPage() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const email = data?.claims?.email;
-  if (!email) redirect("/login");
+  const login = await currentLogin();
+  if (!login) redirect("/login");
+  // No recent password login (for example a device that was logged out
+  // from the Devices page): don't email a code — log in again.
+  if (!login.passwordRecently) redirect("/login?notice=expired");
+  const { supabase, email } = login;
   // Each login has its own session id; the code timer is tied to it.
-  const loginId = String(data.claims.session_id ?? data.claims.sub);
+  const loginId = login.sessionId ?? login.userId;
 
   // Too many wrong codes? Show when they can try again.
   const { data: lockedUntil } = await supabase.rpc("otp_locked_until");
-  const lockedMessage = lockedUntil
-    ? `Too many wrong codes. You can try again at ${phTime(lockedUntil)}.`
-    : undefined;
 
   // Staff go back to the staff page; nobody else ever sees that link.
   const staff = (await cookies()).get(PORTAL_COOKIE)?.value === "staff";
   const backHref = staff ? "/admin/login" : "/login";
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div className="cf-enter flex min-h-full flex-1 flex-col">
       {/* Desktop top bar */}
       <header className="hidden flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-10 py-5 lg:flex">
         <Logo />
@@ -68,7 +66,7 @@ export default async function VerifyPage() {
         </div>
 
         <section className="lg:rounded-panel lg:border-[1.5px] lg:border-border lg:bg-card lg:p-7">
-          <OtpForm loginId={loginId} lockedMessage={lockedMessage} />
+          <OtpForm loginId={loginId} lockedUntil={lockedUntil ?? undefined} />
         </section>
 
         <Link href={backHref} className="py-2 text-center text-[15px] font-semibold lg:hidden">

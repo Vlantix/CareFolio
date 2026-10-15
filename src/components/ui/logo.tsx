@@ -32,7 +32,7 @@ export function Logo({
         className={cn(
           "font-heading font-extrabold tracking-[-0.02em]",
           size === "lg" ? "text-[22px]" : "text-xl",
-          variant === "dark" ? "text-white" : "text-foreground",
+          variant === "dark" ? "text-primary-foreground" : "text-foreground",
         )}
       >
         carefolio

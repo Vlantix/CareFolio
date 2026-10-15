@@ -7,7 +7,7 @@ import { Logo } from "@/components/ui/logo";
  */
 export function BrandPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="hidden flex-[1_1_440px] flex-col gap-8 bg-primary p-14 text-white lg:flex">
+    <div className="hidden flex-[1_1_440px] flex-col gap-8 bg-primary p-14 text-primary-foreground lg:flex">
       <Logo variant="dark" size="lg" />
       <div className="grow" />
       {children}

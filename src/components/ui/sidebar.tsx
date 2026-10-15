@@ -17,7 +17,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   return (
-    <aside className="hidden w-60 shrink-0 flex-col gap-7 bg-sidebar px-[18px] py-7 text-white md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col gap-7 bg-sidebar px-[18px] py-7 text-primary-foreground md:flex">
       <Link href={items[0]?.href ?? "/"} className="px-2 no-underline">
         <Logo variant="dark" />
       </Link>
@@ -32,8 +32,8 @@ export function Sidebar({
               className={cn(
                 "flex min-h-11 items-center rounded-field px-3.5 py-3 no-underline",
                 active
-                  ? "bg-sidebar-active font-bold text-white hover:text-white"
-                  : "text-sidebar-foreground hover:bg-sidebar-active hover:text-white",
+                  ? "bg-sidebar-active font-bold text-primary-foreground hover:text-primary-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-active hover:text-primary-foreground",
               )}
             >
               {label}

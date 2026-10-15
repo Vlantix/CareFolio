@@ -1,18 +1,19 @@
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
+import { DPO_CONTACT } from "@/lib/facility";
 import { getAuthState, homeFor } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
 import { TermsForm } from "./terms-form";
 
 export const metadata = { title: "Terms & privacy · CareFolio" };
 
-// The six sections asked for in phase 4. NOTE: section 4 describes
-// sharing and the protected viewer, which are not built yet — build them
-// or reword this before real users rely on it.
+// The six sections asked for in phase 4, worded to match what the app
+// does today. When sharing links and the protected viewer are built,
+// update section 4 (and ask everyone to accept again).
 const SECTIONS = [
   {
     title: "1. What CareFolio does",
-    body: "CareFolio lets patients and authorized caregivers request, view, download and share official records from our partner hospital. Users cannot upload, edit or delete records; only the hospital's authorized staff can.",
+    body: "CareFolio lets patients and caregivers linked by the records office request, view and download official lab results from our partner hospital. Users cannot upload, edit or delete records; only the hospital's authorized staff can.",
   },
   {
     title: "2. Your health data",
@@ -24,7 +25,7 @@ const SECTIONS = [
   },
   {
     title: "4. Sharing",
-    body: "Share links expire automatically, can be revoked at any time, and every access is logged. Documents open in a protected view that blurs when you leave the app and is watermarked with your name.",
+    body: "Today you can download your official PDF and share it yourself — once downloaded, the copy is in your hands. Share links, a protected viewer and watermarks are not available yet; we will update these terms and ask you again before they are. Every request, release and login is recorded.",
   },
   {
     title: "5. Not medical advice",
@@ -32,7 +33,7 @@ const SECTIONS = [
   },
   {
     title: "6. Your rights",
-    body: "You may access, correct or delete your data at any time. Contact our Data Protection Officer at [DPO email]. Breaches are reported to the National Privacy Commission within 72 hours.",
+    body: `You may access, correct or delete your data at any time. Contact our Data Protection Officer at ${DPO_CONTACT}. Breaches are reported to the National Privacy Commission within 72 hours.`,
   },
 ];
 
@@ -41,7 +42,8 @@ export default async function TermsPage() {
   const { userId, mfa, profile } = await getAuthState();
   if (!userId) redirect("/login");
   if (!mfa) redirect("/verify");
-  if (!profile?.onboarded_at || profile.terms_accepted_at || profile.role === "admin") {
+  const consented = profile?.terms_accepted_at && profile.privacy_consent_at;
+  if (!profile?.onboarded_at || consented || profile.role === "admin") {
     redirect(homeFor(profile));
   }
 
@@ -56,7 +58,7 @@ export default async function TermsPage() {
   );
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div className="cf-enter flex min-h-full flex-1 flex-col">
       {/* The decline button sits inside the terms form's layout but submits this one. */}
       <form id="decline" action={logout} />
 
@@ -89,7 +91,7 @@ export default async function TermsPage() {
             <a
               key={s.title}
               href={`#t${i + 1}`}
-              className="hidden rounded-[10px] px-3 py-2.5 text-body-text no-underline hover:bg-primary-soft hover:text-primary-deep lg:block"
+              className="hidden rounded-chip px-3 py-2.5 text-body-text no-underline hover:bg-primary-soft hover:text-primary-deep lg:block"
             >
               {s.title}
             </a>

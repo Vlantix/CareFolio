@@ -21,7 +21,7 @@ export default async function LoadingPage() {
   if (!mfa) redirect("/verify");
 
   return (
-    <main className="flex flex-1 flex-col items-center px-7 pt-10 pb-8 lg:justify-center lg:px-6 lg:py-12">
+    <main className="cf-enter flex flex-1 flex-col items-center px-7 pt-10 pb-8 lg:justify-center lg:px-6 lg:py-12">
       <div className="flex w-full max-w-[520px] flex-1 flex-col items-center gap-7 lg:flex-none">
         <div className="grow lg:hidden" />
         <div className="relative flex size-[132px] items-center justify-center lg:size-[140px]">

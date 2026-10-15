@@ -22,7 +22,9 @@ export async function logout(formData: FormData) {
     if (sessionId) await supabase.rpc("revoke_session", { p_session_id: sessionId });
   }
 
-  await supabase.auth.signOut();
+  // "local": end THIS device's login only. (The default would end every
+  // device's login while the Devices page still showed them as active.)
+  await supabase.auth.signOut({ scope: "local" });
   cookieStore.delete(MFA_COOKIE);
   cookieStore.delete(PORTAL_COOKIE);
 

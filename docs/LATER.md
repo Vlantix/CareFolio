@@ -18,7 +18,6 @@ stays small enough to actually ship by Session 3.
 - Correction requests
 - Admin audit page, reports, account approval with ID upload and OCR
 - Urgent requests and working-day due dates
-- Account lockout after failed logins, multi-device session management
 - Screenshot blur and the diagonal watermark on document views
 
 ## Parked during /to-spec
@@ -42,3 +41,11 @@ stays small enough to actually ship by Session 3.
 
 - Supabase built-in MFA (aal2), so a stolen mailbox alone can't log in
   (today the database requires the email code, but not the password too)
+
+## Parked during the second /code-review
+
+- Original design copy for the welcome guide and terms section 4 (five
+  document types, timeline filters, QR sharing, protected viewer,
+  caregiver invites) — restore when those features ship
+- Real hospital name (src/lib/facility.ts) and Data Protection Officer
+  contact (DPO_CONTACT) — needed before any real user signs up

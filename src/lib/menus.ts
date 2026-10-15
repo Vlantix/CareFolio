@@ -13,4 +13,7 @@ export const memberNav: NavItem[] = [
 ];
 
 /** Records office. "Link accounts" arrives with ticket 04. */
-export const adminNav: NavItem[] = [{ href: "/admin", label: "Request queue", icon: "inbox" }];
+export const adminNav: NavItem[] = [
+  { href: "/admin", label: "Request queue", icon: "inbox" },
+  { href: "/admin/devices", label: "Devices", icon: "devices" },
+];

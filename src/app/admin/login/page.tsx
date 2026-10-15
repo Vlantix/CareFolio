@@ -16,8 +16,8 @@ export default async function StaffLoginPage({ searchParams }: PageProps<"/admin
   const { failed, idle } = await searchParams;
 
   return (
-    <main className="flex min-h-full flex-1 flex-col items-center justify-center bg-navy px-4 py-12 sm:px-6">
-      <div className="flex w-full max-w-[440px] flex-col gap-[22px] rounded-[24px] bg-card p-6 sm:p-9">
+    <main className="cf-enter flex min-h-full flex-1 flex-col items-center justify-center bg-navy px-4 py-12 sm:px-6">
+      <div className="flex w-full max-w-[440px] flex-col gap-[22px] rounded-hero bg-card p-6 sm:p-9">
         <div className="flex items-center gap-3">
           <Image
             src="/brand/logo-mark.png"
@@ -25,7 +25,7 @@ export default async function StaffLoginPage({ searchParams }: PageProps<"/admin
             width={40}
             height={40}
             priority
-            className="rounded-[10px]"
+            className="rounded-chip"
           />
           <span className="flex flex-col">
             <span className="font-heading text-xl font-extrabold">carefolio</span>

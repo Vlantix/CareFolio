@@ -1,10 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
+import { LoginNotices } from "@/components/login-notices";
 
 // Placeholder until ticket 06 builds the request queue (design/AQueue.html).
-export default async function AdminHome() {
+export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   const profile = await requireAdmin();
+  const { error } = await searchParams;
 
   return (
     <main className="flex flex-col gap-6 px-5 py-6 md:px-10 md:py-8">
@@ -14,6 +16,7 @@ export default async function AdminHome() {
           Hello, {profile.full_name}
         </h1>
       </div>
+      <LoginNotices devicesHref="/admin/devices" error={error === "1"} />
       <Card>
         <CardHeader>
           <CardTitle>Request queue</CardTitle>

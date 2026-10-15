@@ -1,35 +1,38 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ArrowRight, Bell } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 import { finishOnboarding } from "./actions";
 
-// Copy from design/Guide1-3.html (phone) and design/DGuide.html (desktop).
+// Titles, layout and illustrations from design/Guide1-3.html (phone) and
+// design/DGuide.html (desktop). The body copy is trimmed to what the MVP
+// really does: lab results only, no timeline, QR sharing or caregiver
+// invites yet (docs/LATER.md). Restore the design copy as those ship.
 const STEPS = [
   {
     title: "Request official documents",
     mobile:
-      "Choose a lab result, medical certificate, medical abstract, prescription copy or discharge summary. Pick the facility and purpose, then submit — no trip to the records office.",
+      "Request an official lab result from the hospital. Choose the patient, the test and the purpose, then submit — no trip to the records office.",
     desktop:
-      "Choose a lab result, medical certificate, medical abstract, prescription copy or discharge summary. Pick the facility and purpose, then submit — no trip to the records office.",
+      "Request an official lab result from the hospital. Choose the patient, the test and the purpose, then submit — no trip to the records office.",
   },
   {
     title: "Track, then view and download",
     mobile:
-      "Follow each request from Submitted to Released. Released documents land in your timeline — filter by date, type, doctor or facility, and download them as PDF.",
+      "Follow each request from Submitted to Released. Once the records office releases it, open the official PDF and download it.",
     desktop:
-      "Follow each request from Submitted to Released and get notified at every change. Released documents land in your timeline, filterable by date, type, doctor and facility.",
+      "Follow each request from Submitted to Released. Once the records office releases it, open the official PDF on any device and download it.",
   },
   {
     title: "Show any doctor in seconds",
     mobile:
-      "Open the one-page summary or a time-limited QR link. You choose what the doctor sees, and you can revoke access anytime. Prefer paper? Print the summary as PDF.",
+      "Open the official copy on your phone, or download it to print. Only you, people the records office links to you, and records staff can see it.",
     desktop:
-      "Open the one-page summary or a time-limited QR link. You choose what the doctor sees and can revoke access anytime. Caregivers can be added with the patient’s consent.",
+      "Open the official copy on your phone or computer, or download it to print. Only you, people the records office links to you, and records staff can see it.",
   },
 ];
 
@@ -59,7 +62,7 @@ export function Guide() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="cf-enter flex flex-1 flex-col">
       {/* Desktop top bar */}
       <header className="hidden flex-wrap items-center justify-between gap-4 border-b border-border bg-card px-10 py-5 lg:flex">
         <Logo />
@@ -79,7 +82,7 @@ export function Guide() {
           <Progress step={step} className="grid-cols-4" />
         </div>
 
-        <div className="flex h-[300px] items-center justify-center rounded-[24px] bg-primary-soft p-6 lg:h-auto lg:min-h-[400px] lg:flex-[1_1_420px] lg:rounded-[28px] lg:p-10">
+        <div className="flex h-[300px] items-center justify-center rounded-hero bg-primary-soft p-6 lg:h-auto lg:min-h-[400px] lg:flex-[1_1_420px] lg:rounded-hero-lg lg:p-10">
           {step === 0 && <RequestIllustration />}
           {step === 1 && <TrackIllustration />}
           {step === 2 && <ShareIllustration />}
@@ -140,20 +143,20 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="rounded-[10px] bg-background px-3 py-2.5 text-sm font-semibold lg:p-3 lg:text-base">{value}</span>
+      <span className="rounded-chip bg-background px-3 py-2.5 text-sm font-semibold lg:p-3 lg:text-base">{value}</span>
     </div>
   );
 }
 
 function RequestIllustration() {
   return (
-    <div aria-hidden className="flex w-full max-w-[380px] flex-col gap-3 rounded-[18px] border border-illustration-border bg-card p-[18px] lg:rounded-[20px] lg:p-[22px]">
+    <div aria-hidden className="flex w-full max-w-[380px] flex-col gap-3 rounded-card border border-illustration-border bg-card p-[18px] lg:rounded-card-lg lg:p-[22px]">
       <span className="font-heading text-base font-bold lg:text-lg">New request</span>
       <Field label="Document" value="Lab result — HbA1c" />
       <Field label="Facility" value="[Partner facility]" />
       <Field label="Purpose" value="Follow-up consultation" />
       <span className="self-start rounded-full bg-attention px-2.5 py-1.5 text-xs font-bold text-attention-foreground">
-        Release in 1–3 working days
+        Sent to the records office
       </span>
     </div>
   );
@@ -162,7 +165,7 @@ function RequestIllustration() {
 function TrackIllustration() {
   const dot = "size-[22px] flex-none rounded-full";
   return (
-    <ol aria-hidden className="flex w-full max-w-[380px] flex-col gap-1 rounded-[18px] border border-illustration-border bg-card p-[18px] lg:gap-1.5 lg:rounded-[20px] lg:p-[22px]">
+    <ol aria-hidden className="flex w-full max-w-[380px] flex-col gap-1 rounded-card border border-illustration-border bg-card p-[18px] lg:gap-1.5 lg:rounded-card-lg lg:p-[22px]">
       <li className="flex items-center gap-3 py-1.5 lg:py-2">
         <span className={cn(dot, "bg-primary")} />
         <span className="flex-1 text-sm font-semibold lg:text-base">Submitted</span>
@@ -183,44 +186,33 @@ function TrackIllustration() {
         <span className="flex-1 text-sm lg:text-base">Released</span>
         <span className="text-xs lg:text-[13px]">By Oct 16</span>
       </li>
-      <li className="mt-2 flex items-center gap-2.5 rounded-field bg-foreground px-3 py-2.5 text-[13px] text-white lg:hidden">
-        <Bell size={18} strokeWidth={1.8} /> You&apos;ll be notified when it&apos;s released
-      </li>
     </ol>
   );
 }
 
 function ShareIllustration() {
-  const items = [
-    { label: "Medications", on: true },
-    { label: "Allergies", on: true },
-    { label: "Latest labs", on: true },
-    { label: "Diagnoses", on: false },
-  ];
   return (
-    <div aria-hidden className="flex flex-wrap items-center justify-center gap-3.5 lg:gap-5">
-      <div className="flex flex-col items-center gap-2.5 rounded-[18px] border border-illustration-border bg-card p-3.5 lg:gap-3 lg:rounded-[20px] lg:p-[18px]">
-        <svg width="120" height="120" viewBox="0 0 21 21" shapeRendering="crispEdges">
-          <rect width="21" height="21" fill="var(--card)" />
-          <path fill="var(--foreground)" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z" />
-          <path fill="var(--card)" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z" />
-          <path fill="var(--foreground)" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM8 0h1v2H8zM10 1h2v1h-2zM9 3h2v2H9zM12 4h1v3h-1zM8 6h2v1H8zM0 8h2v1H0zM3 8h3v1H3zM8 8h3v2H8zM13 8h2v1h-2zM17 8h4v1h-4zM1 10h2v2H1zM5 10h2v1H5zM11 11h3v1h-3zM16 10h2v3h-2zM19 11h2v1h-2zM8 12h2v2H8zM14 13h1v2h-1zM9 15h3v1H9zM16 14h3v2h-3zM8 17h2v1H8zM12 17h2v3h-2zM15 18h3v1h-3zM19 17h2v4h-2zM9 19h2v2H9zM16 20h2v1h-2z" />
-        </svg>
-        <span className="rounded-full bg-attention px-2.5 py-[5px] text-xs font-bold text-attention-foreground">
-          Expires in 30 min
+    <div aria-hidden className="flex w-full max-w-[300px] flex-col gap-3 rounded-card border border-illustration-border bg-card p-[18px] lg:rounded-card-lg lg:p-[22px]">
+      <div className="flex items-center gap-3">
+        <span className="flex size-11 items-center justify-center rounded-field bg-primary-soft text-primary-deep">
+          <FileText size={22} strokeWidth={1.8} />
+        </span>
+        <span className="flex flex-col">
+          <span className="font-heading text-base font-bold">Lab result — HbA1c</span>
+          <span className="text-xs text-muted-foreground">[Partner facility] · Oct 16</span>
         </span>
       </div>
-      <ul className="flex flex-col gap-2 text-[13px] font-semibold lg:text-sm">
-        {items.map((it) => (
-          <li
-            key={it.label}
-            className={cn("flex items-center gap-2 rounded-[10px] bg-card px-2.5 py-2 lg:px-3.5 lg:py-2.5", !it.on && "text-muted-foreground")}
-          >
-            <span className={cn("size-4 rounded-[4px]", it.on ? "bg-primary" : "border-2 border-disabled-text")} />
-            {it.label}
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col gap-1.5 rounded-chip bg-background p-3">
+        <span className="h-2 w-3/4 rounded-full bg-border" />
+        <span className="h-2 w-full rounded-full bg-border" />
+        <span className="h-2 w-2/3 rounded-full bg-border" />
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="rounded-full bg-primary-soft px-2.5 py-[5px] text-xs font-bold text-primary-deep">
+          Official copy
+        </span>
+        <span className="text-sm font-semibold text-primary">Download PDF</span>
+      </div>
     </div>
   );
 }

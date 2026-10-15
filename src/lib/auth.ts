@@ -10,6 +10,7 @@ export type Profile = {
   full_name: string;
   role: "patient" | "caregiver" | "admin";
   terms_accepted_at: string | null;
+  privacy_consent_at: string | null;
   onboarded_at: string | null;
 };
 
@@ -43,7 +44,7 @@ export const getAuthState = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, terms_accepted_at, onboarded_at")
+    .select("id, email, full_name, role, terms_accepted_at, privacy_consent_at, onboarded_at")
     .eq("id", userId)
     .maybeSingle<Profile>();
 
@@ -62,8 +63,19 @@ export async function requireMember() {
   if (!profile) throw new Error("Profile missing — has supabase/sql/002-profiles.sql been run?");
   if (profile.role === "admin") redirect("/admin");
   if (!profile.onboarded_at) redirect("/welcome");
-  if (!profile.terms_accepted_at) redirect("/terms");
+  if (!profile.terms_accepted_at || !profile.privacy_consent_at) redirect("/terms");
   return profile;
+}
+
+/**
+ * Anyone fully logged in (patient, caregiver or staff) — for actions
+ * both areas share, like the Devices page and the "New login" notice.
+ */
+export async function requireVerified() {
+  const { userId, mfa, sessionId, profile } = await getAuthState();
+  if (!userId) redirect("/login");
+  if (!mfa || !profile) redirect("/verify");
+  return { profile, sessionId, staff: profile.role === "admin" };
 }
 
 /**
@@ -81,6 +93,6 @@ export function homeFor(profile: Profile | null) {
   if (!profile) return "/login";
   if (profile.role === "admin") return "/admin";
   if (!profile.onboarded_at) return "/welcome";
-  if (!profile.terms_accepted_at) return "/terms";
+  if (!profile.terms_accepted_at || !profile.privacy_consent_at) return "/terms";
   return "/home";
 }

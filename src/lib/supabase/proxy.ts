@@ -56,10 +56,13 @@ export async function updateSession(request: NextRequest) {
   const sessionId = userId
     ? await readMfaToken(request.cookies.get(MFA_COOKIE)?.value, userId)
     : null;
-  const mfa = sessionId ? await sessionStillLive(supabase, sessionId) : false;
+  const live = sessionId ? await sessionStillLive(supabase, sessionId) : "dead";
+  // A brief database hiccup: don't punish the user — let this request
+  // through, and the page itself re-checks (requireMember/requireAdmin).
+  const mfa = live === "live" || live === "unknown";
   // A logged-out (revoked) or expired device: drop its cookie so the user
-  // goes back through /verify.
-  if (sessionId && !mfa) response.cookies.delete(MFA_COOKIE);
+  // goes back through log in.
+  if (sessionId && live === "dead") response.cookies.delete(MFA_COOKIE);
 
   // Open to everyone.
   if (isPublic(path)) {
@@ -88,7 +91,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, terms_accepted_at, onboarded_at")
+    .select("role, terms_accepted_at, privacy_consent_at, onboarded_at")
     .eq("id", userId)
     .maybeSingle();
   // Staff who logged in through the patient page belong in /admin.
@@ -97,7 +100,7 @@ export async function updateSession(request: NextRequest) {
     // Setup order: 3-step guide -> terms -> the app.
     const step = !profile.onboarded_at
       ? "/welcome"
-      : !profile.terms_accepted_at
+      : !profile.terms_accepted_at || !profile.privacy_consent_at
         ? "/terms"
         : null;
     if (step && path !== step) return go(step);
@@ -117,21 +120,24 @@ const CACHE_MS = 60_000;
 async function sessionStillLive(
   supabase: ReturnType<typeof createServerClient>,
   sessionId: string,
-) {
+): Promise<"live" | "dead" | "unknown"> {
   const hit = sessionCache.get(sessionId);
-  if (hit && Date.now() - hit.at < CACHE_MS) return hit.live;
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.live ? "live" : "dead";
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_sessions")
     .select("created_at, revoked_at")
     .eq("id", sessionId)
     .maybeSingle();
+  // Couldn't ask the database: don't cache a guess.
+  if (error) return "unknown";
+
   const live = isSessionLive(data);
   sessionCache.set(sessionId, { live, at: Date.now() });
   // "Last seen" — the database only writes it once every 5 minutes.
   if (live) await supabase.rpc("touch_session", { p_session_id: sessionId });
   if (sessionCache.size > 5000) sessionCache.clear();
-  return live;
+  return live ? "live" : "dead";
 }
 
 const PUBLIC_PATHS = new Set([

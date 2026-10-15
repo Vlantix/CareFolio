@@ -101,12 +101,19 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Radii used in the designs: fields 12, big buttons 14,
-     list cards 16, section cards 22. */
+  /* Radii used in the designs: chips 10, fields 12, big buttons 14,
+     list cards 16, section cards 22. (Logo images keep their own
+     radii — they're part of the image's shape.) */
+  --radius-chip: 10px;
   --radius-field: 12px;
   --radius-button: 14px;
   --radius-tile: 16px;
   --radius-panel: 22px;
+  /* Illustration cards and hero blocks (guide, loading, staff login). */
+  --radius-card: 18px;
+  --radius-card-lg: 20px;
+  --radius-hero: 24px;
+  --radius-hero-lg: 28px;
 
   /* Fonts are loaded in layout.tsx with next/font. */
   --font-sans: var(--font-figtree), system-ui, sans-serif;
@@ -130,7 +137,8 @@
 }
 
 /* Every screen enters with a 0.4s fade + 10px rise (design/README.md).
-   Applied once per page by src/app/template.tsx. */
+   Applied by the template.tsx in (auth), (member) and admin/(portal),
+   and directly on the stand-alone pages (verify, loading, welcome…). */
 @keyframes cf-enter {
   from {
     opacity: 0;
@@ -181,6 +189,7 @@
 .cf-word { animation: cf-word-in 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.7s both; }
 .cf-tag { animation: cf-rise 0.6s ease-out 1.3s both; }
 .cf-bar { animation: cf-fill 1.6s cubic-bezier(0.4, 0, 0.2, 1) 1.4s both; }
+.cf-splash-leaving { animation: cf-fade-out 0.2s ease-out forwards; }
 /* Seen it already this browser session? Never show it (set in layout.tsx
    before the page paints, so there is no flash). */
 .cf-splash-seen .cf-splash { display: none; }

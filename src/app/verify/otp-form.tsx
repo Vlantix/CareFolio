@@ -11,11 +11,11 @@ const COOLDOWN = 60;
 /** Six digit boxes + resend timer (design/Otp.html, DVerify.html). */
 export function OtpForm({
   loginId,
-  lockedMessage,
+  lockedUntil: lockedOnArrival,
 }: {
   loginId: string;
-  /** Set when too many wrong codes have locked code entry. */
-  lockedMessage?: string;
+  /** When code entry unlocks, if too many wrong codes locked it. */
+  lockedUntil?: string;
 }) {
   // One timer per login, so logging in again always sends a fresh code.
   const SENT_KEY = `cf_code_sent_at:${loginId}`;
@@ -45,7 +45,7 @@ export function OtpForm({
   // Send the code automatically on arrival — but not again if the page
   // was just reloaded inside the cooldown.
   useEffect(() => {
-    if (autoSent.current || lockedMessage) return;
+    if (autoSent.current || lockedOnArrival) return;
     autoSent.current = true;
     let sentAt = 0;
     try {
@@ -92,15 +92,30 @@ export function OtpForm({
   }
 
   const code = digits.join("");
-  // Locked on arrival, or by the wrong code just entered.
-  const locked = Boolean(lockedMessage || state.locked);
+  // Locked on arrival, or by the wrong code just entered — and unlocked
+  // again automatically when the time passes (no reload needed).
+  const lockedUntil = state.lockedUntil ?? lockedOnArrival;
+  const locked = useLockedUntil(lockedUntil);
+  const lockedText = lockedUntil
+    ? `Too many wrong codes. You can try again at ${new Intl.DateTimeFormat("en-PH", {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "Asia/Manila",
+      }).format(new Date(lockedUntil))}.`
+    : undefined;
   const mm = Math.floor(secondsLeft / 60);
   const ss = String(secondsLeft % 60).padStart(2, "0");
 
   return (
     <form action={action} className="flex flex-col gap-[18px]">
       <input type="hidden" name="token" value={code} />
-      <FormAlert>{state.error ?? lockedMessage ?? sendError}</FormAlert>
+      {locked ? (
+        <FormAlert>{lockedText}</FormAlert>
+      ) : lockedUntil ? (
+        <FormAlert tone="info">You can try again now. Send a new code below.</FormAlert>
+      ) : (
+        <FormAlert>{state.error ?? sendError}</FormAlert>
+      )}
 
       <fieldset className="flex flex-col gap-3" disabled={locked}>
         <legend className="mb-2.5 text-sm font-semibold">Verification code</legend>
@@ -174,4 +189,17 @@ export function OtpForm({
       </Button>
     </form>
   );
+}
+
+/** True until `until` (an ISO time) has passed; re-checks every second. */
+function useLockedUntil(until: string | undefined) {
+  const [now, setNow] = useState(() => Date.now());
+  const end = until ? new Date(until).getTime() : 0;
+  const locked = end > now;
+  useEffect(() => {
+    if (!locked) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [locked]);
+  return locked;
 }

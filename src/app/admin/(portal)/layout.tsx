@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <input type="hidden" name="to" value="staff" />
             <button
               type="submit"
-              className="flex min-h-11 w-full items-center gap-2 rounded-field px-3.5 py-3 text-[15px] text-sidebar-foreground hover:bg-sidebar-active hover:text-white"
+              className="flex min-h-11 w-full items-center gap-2 rounded-field px-3.5 py-3 text-[15px] text-sidebar-foreground hover:bg-sidebar-active hover:text-primary-foreground"
             >
               <LogOut size={18} aria-hidden /> Log out
             </button>

@@ -55,7 +55,7 @@ export function LoadingChecklist({ labels }: { labels: { mobile: string; desktop
 
       <ul
         aria-live="polite"
-        className="flex w-full flex-col gap-3.5 rounded-[18px] border border-border bg-card p-[18px] text-[15px] lg:grid lg:grid-cols-2 lg:gap-4 lg:rounded-[20px] lg:p-[22px]"
+        className="flex w-full flex-col gap-3.5 rounded-card border border-border bg-card p-[18px] text-[15px] lg:grid lg:grid-cols-2 lg:gap-4 lg:rounded-card-lg lg:p-[22px]"
       >
         {labels.map((label, i) => {
           const state = i < done ? "done" : i === done && !failed ? "working" : "waiting";
@@ -69,7 +69,7 @@ export function LoadingChecklist({ labels }: { labels: { mobile: string; desktop
               )}
             >
               {state === "done" ? (
-                <span className="flex size-6 flex-none items-center justify-center rounded-full bg-primary text-white">
+                <span className="flex size-6 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Check size={14} strokeWidth={3} aria-hidden />
                 </span>
               ) : state === "working" ? (

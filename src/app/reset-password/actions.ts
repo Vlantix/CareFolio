@@ -47,7 +47,7 @@ export async function setNewPassword(_prev: ResetState, form: FormData): Promise
   }
 
   // Log in again with the new password (and a fresh email code).
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: "local" });
   (await cookies()).delete(MFA_COOKIE);
   redirect("/login?notice=reset");
 }

@@ -11,28 +11,7 @@ import {
 } from "@/lib/mfa";
 import { otpSchema } from "@/lib/validation";
 import { deviceLabel, phTime, waitText } from "@/lib/device";
-
-// The code must follow a password login made in the last 30 minutes.
-// Without this, someone with only access to the mailbox could ask
-// Supabase for a code directly and skip the password entirely.
-const PASSWORD_WINDOW_SECONDS = 30 * 60;
-
-async function currentLogin() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  if (!claims?.sub || !claims.email) return null;
-
-  const now = Math.floor(Date.now() / 1000);
-  const amr = (claims.amr ?? []) as Array<{ method: string; timestamp: number } | string>;
-  const passwordRecently = amr.some(
-    (entry) =>
-      typeof entry === "object" &&
-      entry.method === "password" &&
-      now - entry.timestamp < PASSWORD_WINDOW_SECONDS,
-  );
-  return { supabase, userId: claims.sub, email: claims.email, passwordRecently };
-}
+import { currentLogin } from "@/lib/login";
 
 export type SendState = { sent?: boolean; error?: string; waitSeconds?: number };
 
@@ -46,7 +25,9 @@ async function lockMessage(supabase: Awaited<ReturnType<typeof createClient>>) {
 /** Emails a 6-digit code to the logged-in user, within the send limits. */
 export async function sendCode(): Promise<SendState> {
   const login = await currentLogin();
-  if (!login) return { error: "Your login has expired. Please log in again." };
+  // No recent password login (e.g. a device logged out from the Devices
+  // page): never email the owner a code — send them to log in instead.
+  if (!login || !login.passwordRecently) redirect("/login?notice=expired");
 
   const locked = await lockMessage(login.supabase);
   if (locked) return { error: locked };
@@ -76,7 +57,7 @@ export async function sendCode(): Promise<SendState> {
   return { sent: true };
 }
 
-export type VerifyState = { error?: string; locked?: boolean };
+export type VerifyState = { error?: string; lockedUntil?: string };
 
 export async function verifyCode(_prev: VerifyState, form: FormData): Promise<VerifyState> {
   const parsed = otpSchema.safeParse(form.get("token"));
@@ -87,8 +68,16 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
 
   const { supabase, userId, email } = login;
 
-  const locked = await lockMessage(supabase);
-  if (locked) return { error: locked, locked: true };
+  // Counts this attempt BEFORE checking the code, one at a time per user,
+  // so codes fired off in parallel can't slip past the lockout.
+  const { data: lockedNow, error: lockError } = await supabase.rpc("otp_begin_verify");
+  if (lockError) return { error: "We couldn't check the code. Please try again." };
+  if (lockedNow) {
+    return {
+      error: `Too many wrong codes. You can try again at ${phTime(lockedNow)}.`,
+      lockedUntil: lockedNow,
+    };
+  }
 
   const { data, error } = await supabase.auth.verifyOtp({
     email,
@@ -101,7 +90,7 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
     if (lockedUntil) {
       return {
         error: `Too many wrong codes. You can try again at ${phTime(lockedUntil)}.`,
-        locked: true,
+        lockedUntil,
       };
     }
     return { error: "That code is wrong or has expired. Check it, or send a new one." };
@@ -131,7 +120,7 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
     if (profile?.role !== "admin") {
       // Same message as a wrong password: never confirm the portal exists.
       await supabase.rpc("revoke_session", { p_session_id: sessionId });
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "local" });
       cookieStore.delete(MFA_COOKIE);
       redirect("/admin/login?failed=1");
     }

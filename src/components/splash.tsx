@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import { SPLASH_SEEN_KEY } from "@/lib/splash";
 
 
-const FULL_MS = 3200; // mark, wordmark, tagline, then the bar fills by 3.0s
-const REDUCED_MS = 600; // prefers-reduced-motion: static logo only
+const FADE_AT_MS = 3000; // the bar has filled: start fading out
+const FADE_MS = 200;
+const REDUCED_MS = 600; // prefers-reduced-motion: static logo, no fade
 
 /**
  * The opening animation (design/Splash.html, DSplash.html), shown at most
@@ -16,7 +17,7 @@ const REDUCED_MS = 600; // prefers-reduced-motion: static logo only
  * the first paint when it has already been seen.
  */
 export function Splash() {
-  const [hidden, setHidden] = useState(false);
+  const [phase, setPhase] = useState<"showing" | "leaving" | "gone">("showing");
 
   useEffect(() => {
     try {
@@ -25,15 +26,23 @@ export function Splash() {
       sessionStorage.setItem(SPLASH_SEEN_KEY, "1");
     } catch {}
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setHidden(true), reduced ? REDUCED_MS : FULL_MS);
-    return () => clearTimeout(t);
+    if (reduced) {
+      const t = setTimeout(() => setPhase("gone"), REDUCED_MS);
+      return () => clearTimeout(t);
+    }
+    const fade = setTimeout(() => setPhase("leaving"), FADE_AT_MS);
+    const gone = setTimeout(() => setPhase("gone"), FADE_AT_MS + FADE_MS);
+    return () => {
+      clearTimeout(fade);
+      clearTimeout(gone);
+    };
   }, []);
 
-  if (hidden) return null;
+  if (phase === "gone") return null;
 
   return (
     <div
-      className="cf-splash fixed inset-0 z-[100] flex flex-col items-center gap-7 overflow-hidden bg-navy px-7 pt-12 pb-8 text-white lg:gap-8 lg:px-6 lg:pt-14 lg:pb-10"
+      className={`cf-splash ${phase === "leaving" ? "cf-splash-leaving" : ""} fixed inset-0 z-[100] flex flex-col items-center gap-7 overflow-hidden bg-navy px-7 pt-12 pb-8 text-primary-foreground lg:gap-8 lg:px-6 lg:pt-14 lg:pb-10`}
       aria-hidden
     >
       <div className="grow" />

@@ -148,6 +148,11 @@ the Devices screen; every login posts a "New login on <device>" notice
 on Home; 15 minutes without input logs you out (warning at 14). Login
 events are written to audit_logs.
 
+**Device-bound access:** the database lets a login read data only while
+its device session is live — logging a device out on the Devices page
+cuts its database access too, not just the app's. Staff have the same
+Devices page and new-login notice in the records-office area.
+
 **Accepted risk:** someone who controls a user's mailbox could request
 and use a code without the password. Closing that needs Supabase's
 built-in MFA (parked in LATER.md).
@@ -188,5 +193,5 @@ On the LIVE URL:
   requests
 - Admin audit page, reports, ID upload with OCR, adding patients from
   the app
-- Urgent requests and due dates, account lockout, session management
+- Urgent requests and due dates
 - Screenshot blur and the watermark
