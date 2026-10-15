@@ -5,11 +5,13 @@ import "server-only";
 //
 // Settings (server-only secrets, never NEXT_PUBLIC_):
 //   GMAIL_USER            the Gmail address that sends
-//   GMAIL_CLIENT_ID       Google Cloud → Credentials → OAuth client
-//   GMAIL_CLIENT_SECRET   …same place
-//   GMAIL_REFRESH_TOKEN   from signing in once as GMAIL_USER, with scope
+//   GOOGLE_CLIENT_ID      Google Cloud → Credentials → OAuth client
+//   GOOGLE_CLIENT_SECRET  …same place
+//   GOOGLE_REFRESH_TOKEN  from signing in once as GMAIL_USER, with scope
 //                         https://www.googleapis.com/auth/gmail.send
 //                         (or https://mail.google.com/) — see README.
+// All three GOOGLE_* values must come from the SAME OAuth client, or
+// Google answers "unauthorized_client". Check them with npm run check:gmail.
 //
 // Two plain HTTPS calls, no extra library: swap the refresh token for a
 // short-lived access token, then ask Gmail to send the message.
@@ -17,15 +19,17 @@ import "server-only";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SEND_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send";
 
+const SETTINGS = ["GMAIL_USER", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"] as const;
+
 function settings() {
-  const user = process.env.GMAIL_USER;
-  const clientId = process.env.GMAIL_CLIENT_ID;
-  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
-  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-  if (!user || !clientId || !clientSecret || !refreshToken) {
-    throw new Error(
-      "Gmail API not configured: set GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET and GMAIL_REFRESH_TOKEN.",
-    );
+  // Trimmed: a stray space or newline pasted into Vercel breaks the token.
+  const [user, clientId, clientSecret, refreshToken] = SETTINGS.map(
+    (name) => process.env[name]?.trim() ?? "",
+  );
+  const missing = SETTINGS.filter((name) => !process.env[name]?.trim());
+  if (missing.length > 0) {
+    // Names only — never the values.
+    throw new Error(`Gmail API not configured: missing ${missing.join(", ")}.`);
   }
   return { user, clientId, clientSecret, refreshToken };
 }
@@ -53,8 +57,12 @@ async function accessToken(s: ReturnType<typeof settings>): Promise<string> {
     error_description?: string;
   };
   if (!res.ok || !data.access_token) {
-    // e.g. invalid_client (wrong ID/secret), invalid_grant (token expired or revoked)
-    throw new Error(`token: ${data.error ?? res.status}${data.error_description ? `: ${data.error_description}` : ""}`);
+    // Status plus Google's own error fields (never our secrets), e.g.
+    // 401 unauthorized_client (token from a different client), 400
+    // invalid_grant (token expired or revoked), 401 invalid_client (wrong ID/secret).
+    throw new Error(
+      `token: ${res.status} ${data.error ?? "no_error_field"}${data.error_description ? `: ${data.error_description}` : ""}`,
+    );
   }
   cachedToken = { value: data.access_token, expiresAt: Date.now() + ((data.expires_in ?? 3600) - 60) * 1000 };
   return data.access_token;

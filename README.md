@@ -46,7 +46,7 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `NEXT_PUBLIC_SITE_URL` | No | The live address, used in share-link QR codes and the stamp on released PDFs | e.g. `https://hackathon-f1-forge.vercel.app` |
 | `NEXT_PUBLIC_FACILITY_NAME` | No | The partner hospital's name shown on screens | e.g. `Partner Hospital` |
 | `GMAIL_USER` | No (server only) | The team Gmail that sends login codes (Gmail API, ~500/day, any inbox) | e.g. `carefolio.codes@gmail.com` |
-| `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | **Yes** — server only | Google OAuth for that Gmail, used to call the Gmail API | Google Cloud OAuth client + OAuth Playground (below) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` | **Yes** — server only | Google OAuth for that Gmail, used to call the Gmail API. All three from the same OAuth client | Google Cloud OAuth client + OAuth Playground (below) |
 | `SEND_EMAIL_HOOK_SECRET` | **Yes** — server only | Optional. Only if reset-link emails go through the Send Email Hook | Shown when you create the hook (step 4) |
 
 **Never** add the Supabase `service_role` key or any `sb_secret_…` key to
@@ -105,9 +105,19 @@ All demo data is **fake**. Never put real patient data in a demo.
    your own OAuth credentials**, paste the client ID and secret.
 5. Step 1: enter scope `https://www.googleapis.com/auth/gmail.send` → **Authorize APIs** →
    sign in as `GMAIL_USER`. Step 2: **Exchange authorization code for
-   tokens** → copy the **Refresh token** into `GMAIL_REFRESH_TOKEN`.
-6. `npm run test:email -- you@example.com` should say
-   `using provider: gmail api` and `"ok": true`.
+   tokens** → copy the **Refresh token** into `GOOGLE_REFRESH_TOKEN`.
+   Use the same client ID and secret you pasted in step 4 for
+   `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+6. `npm run check:gmail` checks the three values together without
+   sending anything. It should say `OK` and `gmail.send: yes`. It prints
+   only the result and Google's error, never a secret or token.
+   - `unauthorized_client` = the refresh token was made with a
+     **different** OAuth client than `GOOGLE_CLIENT_ID`. Redo step 5
+     with this client's ID and secret.
+   - `invalid_grant` = the refresh token expired or was revoked. Redo
+     step 5 (and publish the app, step 2).
+7. `npm run test:email -- you@example.com` sends one real test email and
+   should say `using provider: gmail api` and `"ok": true`.
 
 ### 5. Make the first staff account
 
@@ -156,7 +166,11 @@ Every push to `main` deploys to Vercel.
 - **Works locally but not on Vercel:** run `npm run build` locally, and
   check the Vercel environment variables (then redeploy).
 - **No login code arrives:** check spam; then Vercel → Logs for
-  `[otp] email failed`. `invalid_client` = wrong client ID/secret;
+  `[otp] email failed`. Run `npm run check:gmail` with the same values.
+  `missing …` = that variable isn't set (Vercel: set it, then redeploy);
+  `invalid_client` = wrong client ID/secret;
+  `unauthorized_client` = the refresh token belongs to a different OAuth
+  client (make a new one with this client);
   `invalid_grant` = the refresh token expired or was revoked (publish the
   OAuth app, then get a new token); `403` = the Gmail API isn't enabled or
   the token lacks the `gmail.send` scope.

@@ -126,7 +126,7 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   through the Gmail API with Google OAuth (`src/lib/email.ts`, plain
   `fetch`, no email library). The optional Send Email Hook
   (`/api/auth/send-email`, signature-checked) is only for
-  password-reset links. `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`
+  password-reset links. `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`
   and `SEND_EMAIL_HOOK_SECRET` are server-only — never
   `NEXT_PUBLIC_`, never committed.
 - **No service-role key.** Data users must not reach is protected with
