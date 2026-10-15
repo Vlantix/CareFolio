@@ -40,3 +40,11 @@ stays small enough to actually ship by Session 3.
 - /loading and /welcome onboarding screens
 - Audit rows for login events (account.created, auth.otp_passed,
   admin.login) — the audit_logs table arrives in ticket 04
+
+## Parked during /code-review
+
+- Supabase built-in MFA (aal2), so a stolen mailbox alone can't log in
+  (today the database requires the email code, but not the password too)
+- Phase 3 hardening: our own send limits (5 codes/hour), 5-wrong-codes
+  lockout, device sessions page, new-login notifications, 15-minute
+  idle auto-lock

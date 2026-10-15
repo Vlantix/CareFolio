@@ -52,25 +52,27 @@ Keeping account linking with the records office is what keeps it small.
    office will link your account.
 2. **Log in**: enter email and password.
 3. **Email code**: type the 6-digit code emailed to you.
-4. **Terms**: shown at first login only. Agree to the terms and the
+4. **Forgot password**: enter your email to get a reset link; the link
+   opens a page to choose a new password, then you log in again.
+5. **Terms**: shown at first login only. Agree to the terms and the
    data-privacy consent to continue.
-5. **Home**: see the patients you are linked to, your latest requests
+6. **Home**: see the patients you are linked to, your latest requests
    and their status, and a big "Request a lab result" button. If you
    are not linked to anyone yet, it says you are waiting for the records
    office.
-6. **New request**: choose the patient (if there is more than one),
+7. **New request**: choose the patient (if there is more than one),
    enter the lab test and its date, pick the purpose, and submit.
-7. **My requests**: each request with its code (REQ-0001) and status. A
+8. **My requests**: each request with its code (REQ-0001) and status. A
    declined request shows the reason, and a released one has "View".
-8. **Document view**: the official PDF with a Download button.
+9. **Document view**: the official PDF with a Download button.
 
 **Records office (desktop)**
 
-9. **Request queue**: all requests, newest first, filterable by status.
-10. **Review request**: see who asked and for which patient, then
+10. **Request queue**: all requests, newest first, filterable by status.
+11. **Review request**: see who asked and for which patient, then
     either decline (a reason is required) or approve and attach the PDF.
     Attaching it releases the result.
-11. **Link accounts**: accounts not yet linked to anyone. Enter a
+12. **Link accounts**: accounts not yet linked to anyone. Enter a
     hospital number, choose self or caregiver, and link.
 
 Admins log in on a separate staff page, reached only by typing
@@ -126,6 +128,17 @@ file only through a short-lived download link.
 Yes, accounts are needed: these are health records. We use Supabase
 Auth with email and password, then a 6-digit code emailed at every
 login. The terms screen follows on first login.
+
+**Enforced in the database too:** every RLS policy on patient data
+requires a login that passed the email code (`passed_email_code()`), so
+a password alone can't read anything through the API.
+
+**Accepted risk:** someone who controls a user's mailbox could request
+and use a code without the password. Closing that needs Supabase's
+built-in MFA (parked in LATER.md).
+
+**Email delivery:** codes are sent by Supabase through Resend (custom
+SMTP), the team's chosen email vendor.
 
 **Risk:** Supabase does not offer an emailed code as a second step out
 of the box, so it has to be built. If it takes more than about 30

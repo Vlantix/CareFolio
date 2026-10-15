@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 import { sendCode, verifyCode, type VerifyState } from "./actions";
 
 const COOLDOWN = 60;
-const SENT_KEY = "cf_code_sent_at";
-
 /** Six digit boxes + resend timer (design/Otp.html, DVerify.html). */
-export function OtpForm() {
+export function OtpForm({ loginId }: { loginId: string }) {
+  // One timer per login, so logging in again always sends a fresh code.
+  const SENT_KEY = `cf_code_sent_at:${loginId}`;
   const [state, action, pending] = useActionState<VerifyState, FormData>(verifyCode, {});
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -48,6 +48,8 @@ export function OtpForm() {
       void send();
     }
     boxes.current[0]?.focus();
+    // Runs once on arrival only; re-running would send a second code.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

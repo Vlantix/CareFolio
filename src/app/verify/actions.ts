@@ -93,6 +93,12 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
     redirect("/admin");
   }
 
-  // The proxy sends first-timers on to /terms.
-  redirect("/home");
+  // Staff who used the patient login go to the staff area; the proxy
+  // sends first-time patients and caregivers on to /terms.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  redirect(profile?.role === "admin" ? "/admin" : "/home");
 }

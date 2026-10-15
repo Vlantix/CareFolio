@@ -4,19 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
-import { isActive, menus, type MenuName } from "@/components/ui/nav-items";
+import { isActive, type NavItem } from "@/components/ui/nav-items";
 
 /** Dark desktop menu down the left side. Hidden below md. */
 export function Sidebar({
-  menu,
+  items,
   footer,
 }: {
-  menu: MenuName;
+  items: NavItem[];
   /** Optional slot at the bottom, e.g. a log out button. */
   footer?: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const items = menus[menu];
   return (
     <aside className="hidden w-60 shrink-0 flex-col gap-7 bg-sidebar px-[18px] py-7 text-white md:flex">
       <Link href={items[0]?.href ?? "/"} className="px-2 no-underline">

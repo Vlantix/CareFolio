@@ -1,3 +1,4 @@
+import { FormAlert } from "@/components/ui/form-alert";
 import { Logo } from "@/components/ui/logo";
 import { BackButton } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/server";
@@ -6,7 +7,8 @@ import { NewPasswordForm, RequestResetForm } from "./forms";
 export const metadata = { title: "Reset password · CareFolio" };
 
 // No design file for this screen; it follows design/Main.html.
-export default async function ResetPasswordPage() {
+export default async function ResetPasswordPage({ searchParams }: PageProps<"/reset-password">) {
+  const { expired } = await searchParams;
   // Arriving from the emailed link gives a "recovery" login. Only then
   // may a new password be set — a normal login can't use this page.
   const supabase = await createClient();
@@ -28,6 +30,9 @@ export default async function ResetPasswordPage() {
             : "Enter your email and we'll send you a link to reset it."}
         </p>
       </div>
+      {expired === "1" && !recovering && (
+        <FormAlert>That reset link has expired or was already used. Ask for a new one below.</FormAlert>
+      )}
       {recovering ? <NewPasswordForm /> : <RequestResetForm />}
     </main>
   );

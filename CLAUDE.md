@@ -97,6 +97,18 @@ What we are building is in `docs/SPEC.md`; the approved screens are in
   records.
 - **Audit:** every action that touches patient data writes a row to
   `audit_logs` through the database function, never directly.
+- **Email code in the database:** every RLS policy on patient data
+  includes `(select public.passed_email_code()) and …` (see
+  `supabase/sql/003-require-email-code.sql`).
+- **Every server action checks first:** admin actions start with
+  `await requireAdmin()`, member actions with `await requireMember()`.
+  The proxy's redirects and 404s do not protect server actions.
+- **Menus** live in `src/lib/menus.ts` (server only) so staff addresses
+  never reach a patient's browser. Add a menu item only when its page
+  exists.
+- **Email vendor:** Resend, approved by the team, used as Supabase's
+  custom SMTP for the login codes. Any Resend API key is server-only —
+  never a `NEXT_PUBLIC_` variable, never committed.
 - **No service-role key.** Data users must not reach is protected with
   security definer functions and admin-only RLS policies instead.
 - **Before saying a ticket is done:** run `npm run build`, then do a UI

@@ -75,7 +75,8 @@ export async function updateSession(request: NextRequest) {
 
   // Everything else is the patient/caregiver app.
   if (!userId) return go("/login");
-  if (path === "/verify") return response;
+  // Already passed the code? Don't email another one.
+  if (path === "/verify") return mfa ? go("/home") : response;
   if (!mfa) return go("/verify");
 
   const { data: profile } = await supabase
@@ -83,7 +84,9 @@ export async function updateSession(request: NextRequest) {
     .select("role, terms_accepted_at")
     .eq("id", userId)
     .maybeSingle();
-  if (profile && profile.role !== "admin") {
+  // Staff who logged in through the patient page belong in /admin.
+  if (profile?.role === "admin") return go("/admin");
+  if (profile) {
     if (!profile.terms_accepted_at && path !== "/terms") return go("/terms");
     if (profile.terms_accepted_at && path === "/terms") return go("/home");
   }
@@ -98,7 +101,6 @@ const PUBLIC_PATHS = new Set([
   "/reset-password",
   "/admin/login",
   "/auth/callback",
-  "/preview",
 ]);
 
 function isPublic(path: string) {

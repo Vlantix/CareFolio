@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { requireAdmin } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
+import { adminNav } from "@/lib/menus";
 
 export const metadata: Metadata = {
   title: "Records office · CareFolio",
@@ -18,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-full flex-1">
       <Sidebar
-        menu="admin"
+        items={adminNav}
         footer={
           <form action={logout}>
             <input type="hidden" name="to" value="staff" />

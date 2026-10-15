@@ -1,3 +1,8 @@
+-- ⚠️ EXAMPLE ONLY — every line is commented out so running this file does
+-- nothing. It shows the SHAPE of a table + RLS file. Do not run it:
+-- it would create a 'notes' table that anyone on the internet can read
+-- and write. CareFolio's real database changes start at 002.
+
 -- EXAMPLE — read this, then delete it and write your own.
 --
 -- Every database change in this project is a numbered file in this
@@ -9,12 +14,12 @@
 
 -- 1. The table ------------------------------------------------------
 
-create table if not exists notes (
-  id          uuid primary key default gen_random_uuid(),
-  created_at  timestamptz not null default now(),
-  author_name text        not null,
-  body        text        not null
-);
+-- create table if not exists notes (
+--   id          uuid primary key default gen_random_uuid(),
+--   created_at  timestamptz not null default now(),
+--   author_name text        not null,
+--   body        text        not null
+-- );
 
 -- 2. Row Level Security --------------------------------------------
 --
@@ -28,22 +33,22 @@ create table if not exists notes (
 --
 -- So you always do both: enable it, then write policies.
 
-alter table notes enable row level security;
+-- alter table notes enable row level security;
 
 -- Policy A: anyone may read notes.
 -- Fine for genuinely public data. NOT fine for anything private.
-create policy "anyone can read notes"
-  on notes for select
-  to anon, authenticated
-  using (true);
+-- create policy "anyone can read notes"
+--   on notes for select
+--   to anon, authenticated
+--   using (true);
 
 -- Policy B: anyone may add a note.
 -- Open submission, like a public suggestion box. Reasonable for a demo;
 -- be aware it means anyone can spam you.
-create policy "anyone can add a note"
-  on notes for insert
-  to anon, authenticated
-  with check (true);
+-- create policy "anyone can add a note"
+--   on notes for insert
+--   to anon, authenticated
+--   with check (true);
 
 -- Deliberately NO update or delete policy: nobody can edit or remove
 -- rows through the API. Anything without a policy is denied.

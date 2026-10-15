@@ -28,6 +28,14 @@ export async function setNewPassword(_prev: ResetState, form: FormData): Promise
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
+  // Only a login that came from the emailed reset link may set a new
+  // password. Server actions can be called directly, so the page hiding
+  // the form is not enough — check here too.
+  const { data } = await supabase.auth.getClaims();
+  if (!isRecoveryLogin(data?.claims?.amr)) {
+    return { error: "Open the reset link from your email first." };
+  }
+
   const { error } = await supabase.auth.updateUser({ password: parsed.data });
   if (error) {
     return {
@@ -42,4 +50,12 @@ export async function setNewPassword(_prev: ResetState, form: FormData): Promise
   await supabase.auth.signOut();
   (await cookies()).delete(MFA_COOKIE);
   redirect("/login?notice=reset");
+}
+
+/** True when this login came from an emailed password-reset link. */
+function isRecoveryLogin(amr: unknown) {
+  return (
+    Array.isArray(amr) &&
+    amr.some((e) => typeof e === "object" && e !== null && "method" in e && e.method === "recovery")
+  );
 }

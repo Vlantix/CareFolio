@@ -22,6 +22,8 @@ export default async function VerifyPage() {
   const { data } = await supabase.auth.getClaims();
   const email = data?.claims?.email;
   if (!email) redirect("/login");
+  // Each login has its own session id; the code timer is tied to it.
+  const loginId = String(data.claims.session_id ?? data.claims.sub);
 
   // Staff go back to the staff page; nobody else ever sees that link.
   const staff = (await cookies()).get(PORTAL_COOKIE)?.value === "staff";
@@ -59,7 +61,7 @@ export default async function VerifyPage() {
         </div>
 
         <section className="lg:rounded-panel lg:border-[1.5px] lg:border-border lg:bg-card lg:p-7">
-          <OtpForm />
+          <OtpForm loginId={loginId} />
         </section>
 
         <Link href={backHref} className="py-2 text-center text-[15px] font-semibold lg:hidden">

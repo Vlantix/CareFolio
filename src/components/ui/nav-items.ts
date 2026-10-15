@@ -1,25 +1,22 @@
 import { House, Inbox, Link2, List, type LucideIcon } from "lucide-react";
 
+// Shared by the client-side BottomNav and Sidebar. Holds NO menu
+// addresses: the menus themselves live in src/lib/menus.ts (server only),
+// so staff addresses are never sent to a patient's browser.
+
+export const navIcons = {
+  home: House,
+  list: List,
+  inbox: Inbox,
+  link: Link2,
+} satisfies Record<string, LucideIcon>;
+
 export interface NavItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  /** A key of navIcons (plain text, so a server page can pass it). */
+  icon: keyof typeof navIcons;
 }
-
-// The menus for the MVP. Screens that are parked in docs/LATER.md
-// (Records, Share, Family…) are deliberately left out.
-
-/** Patient and caregiver menu: BottomNav on mobile, Sidebar on desktop. */
-export const memberNav: NavItem[] = [
-  { href: "/home", label: "Home", icon: House },
-  { href: "/requests", label: "Requests", icon: List },
-];
-
-/** Records office menu (desktop Sidebar). */
-export const adminNav: NavItem[] = [
-  { href: "/admin", label: "Request queue", icon: Inbox },
-  { href: "/admin/link", label: "Link accounts", icon: Link2 },
-];
 
 /** True when `pathname` is this item's page or a page inside it. */
 export function isActive(pathname: string, href: string, all: NavItem[]) {
@@ -32,8 +29,3 @@ export function isActive(pathname: string, href: string, all: NavItem[]) {
       (pathname === other.href || pathname.startsWith(other.href + "/")),
   );
 }
-
-// BottomNav and Sidebar are client components, and icons can't be passed
-// to them from a server page, so pages pick a menu by name instead.
-export const menus = { member: memberNav, admin: adminNav };
-export type MenuName = keyof typeof menus;

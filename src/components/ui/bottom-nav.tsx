@@ -3,19 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { isActive, menus, type MenuName } from "@/components/ui/nav-items";
+import { isActive, navIcons, type NavItem } from "@/components/ui/nav-items";
 
-/** Mobile tab bar along the bottom of the screen. Hidden from md up. */
-export function BottomNav({ menu }: { menu: MenuName }) {
+/**
+ * Mobile tab bar along the bottom of the screen. Hidden from md up, and
+ * hidden while the menu has fewer than two tabs (nothing to switch to).
+ */
+export function BottomNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
-  const items = menus[menu];
+  if (items.length < 2) return null;
   return (
     <nav
       aria-label="Main"
       className="sticky bottom-0 grid border-t border-border bg-card px-2 pt-2 pb-5 md:hidden"
       style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
     >
-      {items.map(({ href, label, icon: Icon }) => {
+      {items.map(({ href, label, icon }) => {
+        const Icon = navIcons[icon];
         const active = isActive(pathname, href, items);
         return (
           <Link

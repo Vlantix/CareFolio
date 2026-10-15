@@ -3,6 +3,7 @@ import { BottomNav } from "@/components/ui/bottom-nav";
 import { Sidebar } from "@/components/ui/sidebar";
 import { requireMember } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
+import { memberNav } from "@/lib/menus";
 
 // The logged-in app for patients and caregivers: dark sidebar on
 // desktop, tab bar along the bottom on phones (design/DHome, Home).
@@ -12,7 +13,7 @@ export default async function MemberLayout({ children }: { children: React.React
   return (
     <div className="flex min-h-full flex-1">
       <Sidebar
-        menu="member"
+        items={memberNav}
         footer={
           <form action={logout}>
             <button
@@ -26,7 +27,7 @@ export default async function MemberLayout({ children }: { children: React.React
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-1 flex-col">{children}</div>
-        <BottomNav menu="member" />
+        <BottomNav items={memberNav} />
       </div>
     </div>
   );

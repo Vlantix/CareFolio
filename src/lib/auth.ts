@@ -48,7 +48,8 @@ export async function requireMember() {
   if (!userId) redirect("/login");
   if (!mfa) redirect("/verify");
   if (!profile) throw new Error("Profile missing — has supabase/sql/002-profiles.sql been run?");
-  if (!profile.terms_accepted_at && profile.role !== "admin") redirect("/terms");
+  if (profile.role === "admin") redirect("/admin");
+  if (!profile.terms_accepted_at) redirect("/terms");
   return profile;
 }
 
