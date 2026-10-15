@@ -38,16 +38,22 @@ export const useProtectedPrint = () => useContext(PrintContext);
 export function ProtectedView({
   viewerName,
   viewerEmail,
+  watermark,
   patientId,
   documentId = null,
+  audit = true,
   className,
   children,
 }: {
-  viewerName: string;
+  viewerName?: string;
   /** Already masked, e.g. m••••@gmail.com */
-  viewerEmail: string;
-  patientId: string;
+  viewerEmail?: string;
+  /** Replaces "name · email" in the watermark (e.g. the shared view). */
+  watermark?: string;
+  patientId?: string;
   documentId?: string | null;
+  /** false on public pages: nobody is logged in to audit against. */
+  audit?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -61,12 +67,12 @@ export function ProtectedView({
     (reason: HiddenReason) => {
       setHidden(reason);
       // The database also limits this to once a minute; this just saves calls.
-      if (Date.now() - lastLogged.current > 60_000) {
+      if (audit && patientId && Date.now() - lastLogged.current > 60_000) {
         lastLogged.current = Date.now();
         void logHidden(patientId, documentId, reason);
       }
     },
-    [patientId, documentId],
+    [audit, patientId, documentId],
   );
 
   useEffect(() => {
@@ -112,7 +118,7 @@ export function ProtectedView({
     printing.current = true;
     setStamp(watermarkTime());
     document.body.classList.add("cf-print-allowed");
-    void logSummaryPrinted(patientId);
+    if (audit && patientId) void logSummaryPrinted(patientId);
     const done = () => {
       document.body.classList.remove("cf-print-allowed");
       printing.current = false;
@@ -121,9 +127,9 @@ export function ProtectedView({
     window.addEventListener("afterprint", done);
     // Let React paint the fresh watermark time first.
     requestAnimationFrame(() => window.print());
-  }, [patientId]);
+  }, [audit, patientId]);
 
-  const line = `${viewerName} · ${viewerEmail} · ${stamp} · CareFolio`;
+  const line = `${watermark ?? `${viewerName} · ${viewerEmail}`} · ${stamp} · CareFolio`;
 
   return (
     <PrintContext.Provider value={{ printWatermarked }}>

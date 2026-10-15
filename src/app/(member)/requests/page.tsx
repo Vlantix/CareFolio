@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { FilePenLine, Plus } from "lucide-react";
 import { PatientSwitcher } from "@/components/patient-switcher";
 import { FormAlert } from "@/components/ui/form-alert";
 import { BackButton } from "@/components/ui/page-header";
@@ -36,7 +36,7 @@ const TABS = [
 // design/MRequests.html
 export default async function RequestsPage({ searchParams }: PageProps<"/requests">) {
   await requireMember();
-  const { tab: tabParam, sent } = await searchParams;
+  const { tab: tabParam, sent, correction } = await searchParams;
   const tab = TABS.find((t) => t.key === tabParam) ?? TABS[0];
   const { patients, active } = await getActivePatient();
 
@@ -68,6 +68,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
       </div>
       {active && <PatientSwitcher patients={patients} activeId={active.id} />}
       {sent === "1" && <FormAlert tone="info">Request sent to the records office.</FormAlert>}
+      {correction === "1" && <FormAlert tone="info">Correction request sent. You&apos;ll be notified of the result.</FormAlert>}
 
       {/* Tabs are links, so each list has its own address. */}
       <nav aria-label="Filter requests" className="flex gap-1.5 rounded-field bg-tab-track p-1">
@@ -164,6 +165,15 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
           </article>
         );
       })}
+      <Link
+        href="/corrections/new"
+        className="mt-2 flex items-center gap-2.5 rounded-button border border-dashed border-disabled-text bg-card p-3.5 text-sm text-foreground no-underline hover:border-primary hover:text-foreground"
+      >
+        <FilePenLine size={20} aria-hidden className="shrink-0 text-primary" />
+        <span className="flex-1">
+          Found a missing or wrong record? <strong className="text-primary">Request a correction</strong>
+        </span>
+      </Link>
     </main>
   );
 }

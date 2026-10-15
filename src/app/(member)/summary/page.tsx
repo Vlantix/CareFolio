@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Lock } from "lucide-react";
 import { PatientSwitcher } from "@/components/patient-switcher";
 import { BackButton } from "@/components/ui/page-header";
@@ -150,9 +151,14 @@ export default async function SummaryPage() {
           </section>
         </div>
 
-        {/* "Share via QR" joins here when phase 6 builds /share. */}
-        <div className="mt-3.5 grid grid-cols-1 print:hidden">
+        <div className="mt-3.5 grid grid-cols-2 gap-2.5 print:hidden">
           <PrintButton />
+          <Link
+            href="/share"
+            className="flex h-13 items-center justify-center rounded-button bg-primary font-semibold text-primary-foreground no-underline hover:bg-primary-hover hover:text-primary-foreground"
+          >
+            Share via QR
+          </Link>
         </div>
       </ProtectedView>
     </main>

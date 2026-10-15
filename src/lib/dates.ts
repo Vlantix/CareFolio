@@ -16,6 +16,8 @@ export const timeOfDay = fmt({ hour: "numeric", minute: "2-digit" });
 export const stampTime = fmt({ month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 /** "Oct 16, 3:42 PM" */
 export const dayAndTime = fmt({ month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+/** "Oct 10, 2026" */
+export const mediumDate = fmt({ dateStyle: "medium" });
 /** "October 2026" */
 export const monthYear = fmt({ month: "long", year: "numeric" });
 /** "Wednesday, October 14" */

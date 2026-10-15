@@ -10,9 +10,6 @@ stays small enough to actually ship by Session 3.
 
 - Caregivers linking themselves, in-app consent forms, per-caregiver
   permission toggles (can request / view / share), revoking access
-- Share links with QR codes and access codes, doctor view, and the
-  public "verify a document" page
-- Correction requests
 - Admin audit page, reports, account approval with ID upload and OCR
 
 ## Parked during /to-spec
@@ -27,7 +24,6 @@ stays small enough to actually ship by Session 3.
 - Audit rows for account.created and admin.login (the otp, lock and
   session events are logged since phase 3)
 - Admin "Unlock" button for a locked account (phase 7.5)
-- Reminders (appointments, refills, labs)
 
 ## Parked during /code-review
 
@@ -44,7 +40,5 @@ stays small enough to actually ship by Session 3.
 
 ## Still parked after phase 5
 
-- Share tab, "Show QR" and "Share via QR" buttons (phase 6 builds /share)
-- Correction requests (and their notifications)
 - Admin screens to approve accounts and link caregivers (until then: the
   SQL lines at the end of supabase/sql/007-patients-records-requests.sql)

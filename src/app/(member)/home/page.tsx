@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, QrCode } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { buttonVariants } from "@/components/ui/button";
@@ -145,13 +145,20 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   Show {whose} verified one-page summary in seconds.
                 </p>
               </div>
-              {/* "Show QR" joins here when phase 6 builds /share. */}
-              <Link
-                href="/summary"
-                className="flex h-12 items-center justify-center rounded-field bg-card px-5 text-ui font-bold text-primary-deep no-underline hover:bg-primary-soft hover:text-primary-deep md:self-start"
-              >
-                Summary
-              </Link>
+              <div className="grid grid-cols-2 gap-2.5 md:flex md:flex-wrap">
+                <Link
+                  href="/share"
+                  className="flex h-12 items-center justify-center gap-2 rounded-field bg-card px-5 text-ui font-bold text-primary-deep no-underline hover:bg-primary-soft hover:text-primary-deep"
+                >
+                  <QrCode size={18} strokeWidth={2} aria-hidden /> Show QR
+                </Link>
+                <Link
+                  href="/summary"
+                  className="flex h-12 items-center justify-center rounded-field border border-pulse bg-primary-hover px-5 text-ui font-bold text-primary-foreground no-underline hover:text-primary-foreground"
+                >
+                  Summary
+                </Link>
+              </div>
             </section>
             <section className="hidden flex-[1_1_200px] flex-col gap-1.5 rounded-panel border border-border bg-card p-6 md:flex">
               <span className="text-sm text-muted-foreground">Active requests</span>

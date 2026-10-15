@@ -7,14 +7,13 @@ import type { NavItem } from "@/components/ui/nav-items";
 // never link to a page that doesn't exist yet.
 
 /**
- * Patients and caregivers — phone tab bar (design/Home.html). "Share"
- * joins when phase 6 builds /share; until then it's left out so nothing
- * links to a missing page.
+ * Patients and caregivers — phone tab bar (design/Home.html).
  */
 export const memberTabs: NavItem[] = [
   { href: "/home", label: "Home", icon: "home" },
   { href: "/records", label: "Records", icon: "records" },
   { href: "/requests", label: "Requests", icon: "list" },
+  { href: "/share", label: "Share", icon: "share" },
   { href: "/profile/sessions", label: "Profile", icon: "profile" },
 ];
 
@@ -24,6 +23,9 @@ export const memberSidebar: NavItem[] = [
   { href: "/records", label: "Records timeline", icon: "records" },
   { href: "/requests", label: "Requests", icon: "list" },
   { href: "/summary", label: "Health summary", icon: "summary" },
+  { href: "/share", label: "Share & QR", icon: "share" },
+  { href: "/family", label: "Family access", icon: "family" },
+  { href: "/reminders", label: "Reminders", icon: "reminders" },
   { href: "/profile/sessions", label: "Devices", icon: "devices" },
 ];
 

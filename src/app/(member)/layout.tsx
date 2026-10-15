@@ -5,12 +5,16 @@ import { requireMember } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
 import { memberSidebar, memberTabs } from "@/lib/menus";
 import { AccountStatusBanner } from "@/components/account-status";
+import { createClient } from "@/lib/supabase/server";
 import { IdleLogout } from "@/components/idle-logout";
 
 // The logged-in app for patients and caregivers: dark sidebar on
 // desktop, tab bar along the bottom on phones (design/DHome, Home).
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireMember();
+  // No cron needed for the demo: reminders due within 24 hours become
+  // in-app notifications (once each) whenever the app loads.
+  await (await createClient()).rpc("notify_due_reminders");
 
   return (
     <div className="flex min-h-full flex-1">

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { SPLASH_SEEN_KEY } from "@/lib/splash";
 
 
@@ -18,6 +19,9 @@ const REDUCED_MS = 600; // prefers-reduced-motion: static logo, no fade
  */
 export function Splash() {
   const [phase, setPhase] = useState<"showing" | "leaving" | "gone">("showing");
+  // A doctor opening a shared link, or someone checking a code, should
+  // see the page straight away.
+  const skip = /^\/(s\/|verify-document)/.test(usePathname());
 
   useEffect(() => {
     try {
@@ -38,7 +42,7 @@ export function Splash() {
     };
   }, []);
 
-  if (phase === "gone") return null;
+  if (phase === "gone" || skip) return null;
 
   return (
     <div

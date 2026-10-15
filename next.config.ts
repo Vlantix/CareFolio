@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
     return [
       { source: "/admin", headers: noindex },
       { source: "/admin/:path*", headers: noindex },
+      // Shared summaries: never indexed, never cached anywhere.
+      {
+        source: "/s/:path*",
+        headers: [
+          ...noindex,
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
     ];
   },
 

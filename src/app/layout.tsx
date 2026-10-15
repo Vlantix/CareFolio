@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             no user input. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(sessionStorage.getItem("${SPLASH_SEEN_KEY}"))document.documentElement.classList.add("cf-splash-seen")}catch(e){}`,
+            __html: `try{var p=location.pathname;if(sessionStorage.getItem("${SPLASH_SEEN_KEY}")||p.indexOf("/s/")===0||p==="/verify-document")document.documentElement.classList.add("cf-splash-seen")}catch(e){}`,
           }}
         />
       </head>

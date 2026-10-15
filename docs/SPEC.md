@@ -191,17 +191,22 @@ On the LIVE URL:
 ## Out of scope
 Agreed with the team in phases 3-5, these are now IN scope: all five
 record types, the records timeline, health summary, notifications page,
-urgent requests with working-day due dates, and the protected view
-(blur + watermark). Still out of scope:
+urgent requests with working-day due dates, the protected view
+(blur + watermark), and in phase 6: share links with QR codes, the
+doctor's shared view, public document verification, correction
+requests, family access with consent, and reminders. Still out of
+scope:
 - ID photo upload and OCR
-- Caregivers linking themselves, in-app consent forms, permission
-  toggles
-- Share links and QR codes, the doctor view, verifying a document
-  (phase 6)
-- Reminders and correction requests
+- Caregivers linking themselves without an invite; editing caregiver
+  permissions (the records office sets them)
 - Admin audit page, reports, adding patients from the app
 
 ## Decisions to revisit
+- Shared links: a public page reads them through a database function
+  (no service-role key). The verify page's per-IP limit relies on the
+  address our server passes in; an overall cap backs it up.
+- Reminders are personal notes: users write them directly (RLS: own
+  rows only) and they are not audited.
 - Request status notices go to the requester only; document releases go
   to everyone who can view the patient.
 - Any caregiver allowed to request for a patient can answer the records

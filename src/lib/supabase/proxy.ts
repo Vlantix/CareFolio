@@ -147,10 +147,12 @@ const PUBLIC_PATHS = new Set([
   "/reset-password",
   "/admin/login",
   "/auth/callback",
+  "/verify-document",
 ]);
 
 function isPublic(path: string) {
-  return PUBLIC_PATHS.has(path);
+  // /s/<token>: a doctor opening a shared summary (no login).
+  return PUBLIC_PATHS.has(path) || path.startsWith("/s/");
 }
 
 async function getRole(
