@@ -10,6 +10,9 @@ import { PORTAL_COOKIE } from "@/lib/mfa";
 import { OtpForm } from "./otp-form";
 
 export const metadata = { title: "Check your email · CareFolio" };
+// The code email is sent from this page's server actions with nodemailer,
+// which needs Node.js (not the Edge runtime).
+export const runtime = "nodejs";
 
 
 // design/Otp.html (mobile) and design/DVerify.html (desktop).

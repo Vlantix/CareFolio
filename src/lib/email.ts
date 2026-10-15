@@ -4,13 +4,14 @@ import { Resend } from "resend";
 
 // Emails CareFolio sends: login codes and account links.
 //
-// Two ways to send, chosen by which settings exist (server-only secrets,
-// never NEXT_PUBLIC_):
+// Two ways to send (server-only secrets, never NEXT_PUBLIC_):
 //   1. Gmail — GMAIL_USER + GMAIL_APP_PASSWORD. Free, reaches ANY inbox
-//      (about 500 a day). Used whenever these two are set.
+//      (about 500 a day).
 //   2. Resend — RESEND_API_KEY + RESEND_FROM_EMAIL. While the sender is
 //      on resend.dev, Resend only delivers to the Resend account owner's
 //      own inbox; it needs a verified domain to reach everyone.
+// EMAIL_PROVIDER ("gmail" or "resend") forces one. Without it: Gmail if
+// its two settings exist, otherwise Resend.
 
 /** `key` makes a retried send a no-op (Resend idempotency, 24 h). */
 type Sender = (to: string, subject: string, html: string, text: string, key?: string) => Promise<SentResult>;
@@ -18,14 +19,22 @@ type Sender = (to: string, subject: string, html: string, text: string, key?: st
 let sendVia: Sender | null = null;
 
 function pickSender(): Sender {
+  const forced = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
+  if (forced && forced !== "gmail" && forced !== "resend") {
+    throw new Error(`EMAIL_PROVIDER must be "gmail" or "resend" (got "${forced}").`);
+  }
   const gmailUser = process.env.GMAIL_USER;
   const gmailPass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
-  if (gmailUser && gmailPass) {
+  if (forced === "gmail" && !(gmailUser && gmailPass)) {
+    throw new Error("EMAIL_PROVIDER is gmail, but GMAIL_USER or GMAIL_APP_PASSWORD is missing.");
+  }
+  if (forced === "gmail" || (!forced && gmailUser && gmailPass)) {
+    console.info("[email] using provider: gmail");
     const transport = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
       secure: true,
-      auth: { user: gmailUser, pass: gmailPass },
+      auth: { user: gmailUser!, pass: gmailPass! },
     });
     return async (to, subject, html, text) => {
       try {
@@ -40,8 +49,13 @@ function pickSender(): Sender {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
   if (!key || !from) {
-    throw new Error("No email sender configured: set GMAIL_USER + GMAIL_APP_PASSWORD (or RESEND_API_KEY + RESEND_FROM_EMAIL).");
+    throw new Error(
+      forced === "resend"
+        ? "EMAIL_PROVIDER is resend, but RESEND_API_KEY or RESEND_FROM_EMAIL is missing."
+        : "No email sender configured: set GMAIL_USER + GMAIL_APP_PASSWORD (or RESEND_API_KEY + RESEND_FROM_EMAIL).",
+    );
   }
+  console.info("[email] using provider: resend");
   const resend = new Resend(key);
   const sender = from.includes("<") ? from : `CareFolio <${from}>`;
   return async (to, subject, html, text, key) => {

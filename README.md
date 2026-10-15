@@ -45,6 +45,7 @@ then redeploy. `.env.local` is git-ignored — never commit it.
 | `VERIFY_COOKIE_SECRET` | **Yes** — server only | Signs the "passed the email code" cookie. At least 32 random characters | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
 | `NEXT_PUBLIC_SITE_URL` | No | The live address, used in share-link QR codes and the stamp on released PDFs | e.g. `https://hackathon-f1-forge.vercel.app` |
 | `NEXT_PUBLIC_FACILITY_NAME` | No | The partner hospital's name shown on screens | e.g. `Partner Hospital` |
+| `EMAIL_PROVIDER` | No (server only) | Optional: `gmail` or `resend` forces one sender. Empty = Gmail if set, else Resend | Test with `npm run test:email -- you@example.com` |
 | `GMAIL_USER` | No (server only) | The team Gmail that sends login codes. Free, reaches any inbox (~500/day). Used when set | e.g. `carefolio.codes@gmail.com` |
 | `GMAIL_APP_PASSWORD` | **Yes** — server only | 16-letter App Password for that Gmail (needs 2-Step Verification) | myaccount.google.com/apppasswords |
 | `RESEND_API_KEY` | **Yes** — server only | Alternative sender (used only if the Gmail pair isn't set) | Resend → API Keys ("Sending access" is enough) |
@@ -76,6 +77,7 @@ order**, one at a time (paste → Run):
 | `011-admin-portal.sql` | Records office portal, change audit |
 | `012-extras.sql` | Profile, data rights, unlock, staff alerts, walk-ins, facility suggestions |
 | `013-own-email-codes.sql` | CareFolio makes, emails (Gmail/Resend) and checks its own login codes |
+| `014-undelivered-codes.sql` | A code that failed to send is switched off and doesn't count against the limits |
 
 All demo data is **fake**. Never put real patient data in a demo.
 

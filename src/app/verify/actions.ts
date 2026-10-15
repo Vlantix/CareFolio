@@ -13,7 +13,7 @@ import {
 import { otpSchema } from "@/lib/validation";
 import { deviceLabel, phTime, waitText } from "@/lib/device";
 import { currentLogin } from "@/lib/login";
-import { sendCodeEmail } from "@/lib/email";
+import { sendCodeEmail, type SentResult } from "@/lib/email";
 
 export type SendState = { sent?: boolean; error?: string; waitSeconds?: number };
 
@@ -48,8 +48,9 @@ export async function sendCode(): Promise<SendState> {
 
   // Stores only the hash, after the limits (1 a minute, 5 an hour) and
   // the lockout check — all in the database.
+  const codeHash = hashCode(login.sessionId, code);
   const { data: wait, error: issueError } = await login.supabase.rpc("issue_login_code", {
-    p_code_hash: hashCode(login.sessionId, code),
+    p_code_hash: codeHash,
   });
   if (issueError) {
     console.error("sendCode: issue_login_code failed:", issueError.code, issueError.message);
@@ -66,15 +67,25 @@ export async function sendCode(): Promise<SendState> {
     };
   }
 
-  const sent = await sendCodeEmail(login.email, code, `login-code/${login.sessionId}/${Date.now()}`);
+  let sent: SentResult;
+  try {
+    sent = await sendCodeEmail(login.email, code, `login-code/${login.sessionId}/${Date.now()}`);
+  } catch (e) {
+    // e.g. no email provider configured on this deployment.
+    sent = { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
   if (!sent.ok) {
     // The exact reason (e.g. Resend's "testing emails to your own email
-    // address") is in Vercel → Logs. Never the code itself.
-    console.error("sendCode: email not sent:", sent.error);
-    return {
-      error:
-        "Our email service couldn't send the code. Please try again in a minute — if it keeps happening, tell the records office.",
-    };
+    // address") is in Vercel → Logs. Only the domain — never the full
+    // address, never the code.
+    console.error("[otp] email failed:", sent.error, "| to domain:", login.email.split("@")[1]);
+    // The code never arrived: switch it off and give the send back, so
+    // the person isn't blocked by the limits (supabase/sql/014).
+    const { error: discardError } = await login.supabase.rpc("discard_login_code", {
+      p_code_hash: codeHash,
+    });
+    if (discardError) console.error("[otp] discard failed:", discardError.code, discardError.message);
+    return { error: "We couldn't send your code. Please try again in a moment." };
   }
   return { sent: true };
 }
