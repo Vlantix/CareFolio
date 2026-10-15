@@ -20,6 +20,10 @@ export async function updateSession(request: NextRequest) {
   // Not connected to Supabase yet (no .env.local / Vercel variables):
   // let public pages load instead of crashing the whole site.
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    // ...but the staff area still answers with a plain 404, never an error
+    // page that would hint it exists.
+    const p = request.nextUrl.pathname;
+    if ((p === "/admin" || p.startsWith("/admin/")) && p !== "/admin/login") return notFound(request, response);
     return response;
   }
 

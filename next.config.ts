@@ -11,6 +11,21 @@ const nextConfig: NextConfig = {
   async headers() {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
     return [
+      // Security headers on every response.
+      {
+        source: "/:path*",
+        headers: [
+          // Nobody can show CareFolio inside a frame on their site (clickjacking).
+          { key: "X-Frame-Options", value: "DENY" },
+          // Other sites only learn our domain, never the full address.
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Browsers must trust our file types, not guess them.
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Camera allowed for our own pages only (kept for the planned ID
+          // scanner); microphone and location off.
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+        ],
+      },
       { source: "/admin", headers: noindex },
       // The service worker must never be served from a stale cache.
       {
