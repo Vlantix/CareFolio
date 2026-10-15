@@ -45,7 +45,7 @@ export default async function HomePage() {
   }).format(new Date());
 
   return (
-    <main className="cf-enter flex flex-col gap-4 px-5 pt-5 pb-4 md:gap-6 md:px-10 md:py-8">
+    <main className="flex flex-col gap-4 px-5 pt-5 pb-4 md:gap-6 md:px-10 md:py-8">
       {/* Phone header */}
       <div className="flex items-center gap-3 md:hidden">
         <span

@@ -25,7 +25,6 @@ stays small enough to actually ship by Session 3.
 
 - A separate records list / timeline screen (for now, released results
   open from My requests)
-- The loading screen, the 3-step guide and the splash animation
 - Adding new patient records from the app (demo patients come from SQL)
 
 ## Parked during ticket 02/03 (phase 2 prompt)
@@ -33,7 +32,6 @@ stays small enough to actually ship by Session 3.
 - ID scanner on sign-up: camera capture, tesseract.js OCR, pre-fill,
   upload to a private ids bucket (no "Add a photo of your valid ID"
   button until then)
-- /loading and /welcome onboarding screens
 - Audit rows for account.created and admin.login (the otp, lock and
   session events are logged since phase 3)
 - Admin "Unlock" button for a locked account (phase 7.5)

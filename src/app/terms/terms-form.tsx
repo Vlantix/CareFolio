@@ -16,11 +16,11 @@ export function TermsForm({ declineSlot }: { declineSlot: React.ReactNode }) {
       <FormAlert>{state.error}</FormAlert>
       <div className="flex flex-col gap-3 lg:border-t lg:border-divider lg:pt-4">
         <Consent name="terms" checked={terms} onChange={setTerms}>
-          I have read and agree to the Terms of Use above.
+          I have read and agree to the Terms of Use.
         </Consent>
         <Consent name="privacy" checked={privacy} onChange={setPrivacy}>
           I consent to the processing of my health information as described
-          above.
+          in the Privacy Notice above.
         </Consent>
       </div>
       <div className="grow lg:hidden" />

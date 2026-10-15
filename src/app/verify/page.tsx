@@ -37,7 +37,7 @@ export default async function VerifyPage() {
   const backHref = staff ? "/admin/login" : "/login";
 
   return (
-    <div className="cf-enter flex min-h-full flex-1 flex-col">
+    <div className="flex min-h-full flex-1 flex-col">
       {/* Desktop top bar */}
       <header className="hidden flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-10 py-5 lg:flex">
         <Logo />

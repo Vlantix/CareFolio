@@ -1,33 +1,34 @@
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
-import { getAuthState } from "@/lib/auth";
+import { getAuthState, homeFor } from "@/lib/auth";
 import { logout } from "@/app/actions/logout";
 import { TermsForm } from "./terms-form";
 
 export const metadata = { title: "Terms & privacy · CareFolio" };
 
-// Adapted to the MVP: sharing, QR links and the protected viewer are
-// parked (docs/LATER.md), so the terms don't promise them.
+// The six sections asked for in phase 4. NOTE: section 4 describes
+// sharing and the protected viewer, which are not built yet — build them
+// or reword this before real users rely on it.
 const SECTIONS = [
   {
     title: "1. What CareFolio does",
-    body: "CareFolio lets patients and caregivers linked by the records office request, view and download official lab results from our partner hospital. Users cannot upload, edit or delete records; only the hospital's authorized staff can.",
+    body: "CareFolio lets patients and authorized caregivers request, view, download and share official records from our partner hospital. Users cannot upload, edit or delete records; only the hospital's authorized staff can.",
   },
   {
     title: "2. Your health data",
-    body: "Health information is sensitive personal information under the Data Privacy Act of 2012 (RA 10173). We collect only what is needed to handle your requests and encrypt data in transit and at rest.",
+    body: "Health information is sensitive personal information under the Data Privacy Act of 2012 (RA 10173). We collect only what is needed and encrypt data in transit and at rest.",
   },
   {
     title: "3. Email verification",
-    body: "Every login is confirmed with a one-time 6-digit code sent to your email. Never share this code — CareFolio staff will never ask for it.",
+    body: "Every login needs a one-time 6-digit code sent to your email. Never share this code — CareFolio staff will never ask for it.",
   },
   {
-    title: "4. Who can see your records",
-    body: "Only you, caregivers the records office has linked to you, and authorized records staff. Every request and release is recorded.",
+    title: "4. Sharing",
+    body: "Share links expire automatically, can be revoked at any time, and every access is logged. Documents open in a protected view that blurs when you leave the app and is watermarked with your name.",
   },
   {
     title: "5. Not medical advice",
-    body: "CareFolio does not diagnose or interpret results. Requests are handled in working days; it is not intended for emergencies.",
+    body: "CareFolio does not diagnose or interpret results. It is not intended for emergencies — in an emergency, go to the nearest hospital.",
   },
   {
     title: "6. Your rights",
@@ -40,7 +41,9 @@ export default async function TermsPage() {
   const { userId, mfa, profile } = await getAuthState();
   if (!userId) redirect("/login");
   if (!mfa) redirect("/verify");
-  if (profile?.terms_accepted_at) redirect("/home");
+  if (!profile?.onboarded_at || profile.terms_accepted_at || profile.role === "admin") {
+    redirect(homeFor(profile));
+  }
 
   const decline = (
     <button
@@ -53,14 +56,14 @@ export default async function TermsPage() {
   );
 
   return (
-    <div className="cf-enter flex min-h-full flex-1 flex-col">
+    <div className="flex min-h-full flex-1 flex-col">
       {/* The decline button sits inside the terms form's layout but submits this one. */}
       <form id="decline" action={logout} />
 
       <header className="hidden flex-wrap items-center justify-between gap-4 border-b border-border bg-card px-10 py-5 lg:flex">
         <Logo />
         <div className="flex items-center gap-3.5 text-sm font-semibold text-muted-foreground">
-          <span>Final step</span>
+          <span>Final step · 4 of 4</span>
           <Progress className="grid-cols-[repeat(4,40px)]" />
         </div>
       </header>
@@ -70,6 +73,7 @@ export default async function TermsPage() {
         <div className="flex flex-col gap-2.5 lg:hidden">
           <div className="flex justify-between text-[13px] font-semibold text-muted-foreground">
             <span>Final step</span>
+            <span>4 of 4</span>
           </div>
           <Progress className="grid-cols-4" />
         </div>

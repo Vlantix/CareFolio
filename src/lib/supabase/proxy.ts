@@ -83,16 +83,25 @@ export async function updateSession(request: NextRequest) {
   if (path === "/verify") return mfa ? go("/home") : response;
   if (!mfa) return go("/verify");
 
+  // The loading screen works out where to go next by itself.
+  if (path === "/loading") return response;
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, terms_accepted_at")
+    .select("role, terms_accepted_at, onboarded_at")
     .eq("id", userId)
     .maybeSingle();
   // Staff who logged in through the patient page belong in /admin.
   if (profile?.role === "admin") return go("/admin");
   if (profile) {
-    if (!profile.terms_accepted_at && path !== "/terms") return go("/terms");
-    if (profile.terms_accepted_at && path === "/terms") return go("/home");
+    // Setup order: 3-step guide -> terms -> the app.
+    const step = !profile.onboarded_at
+      ? "/welcome"
+      : !profile.terms_accepted_at
+        ? "/terms"
+        : null;
+    if (step && path !== step) return go(step);
+    if (!step && (path === "/welcome" || path === "/terms")) return go("/home");
   }
 
   return response;

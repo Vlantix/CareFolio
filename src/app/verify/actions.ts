@@ -135,15 +135,10 @@ export async function verifyCode(_prev: VerifyState, form: FormData): Promise<Ve
       cookieStore.delete(MFA_COOKIE);
       redirect("/admin/login?failed=1");
     }
-    redirect("/admin");
+    redirect("/loading");
   }
 
-  // Staff who used the patient login go to the staff area; the proxy
-  // sends first-time patients and caregivers on to /terms.
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
-  redirect(profile?.role === "admin" ? "/admin" : "/home");
+  // Everyone goes through the loading screen, which then sends them to
+  // the guide, the terms, Home — or /admin for staff.
+  redirect("/loading");
 }

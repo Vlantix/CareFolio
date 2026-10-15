@@ -57,25 +57,29 @@ Keeping account linking with the records office is what keeps it small.
 5. **Devices**: every device where you're logged in, with "This
    device" marked, a Log out button for each and "Log out all other
    devices".
-6. **Terms**: shown at first login only. Agree to the terms and the
+6. **Loading**: right after the email code, a checklist that ticks as
+   the account, session and records actually load, then moves on.
+7. **Welcome guide**: first login only — 3 steps (request, track and
+   download, show a doctor) with Back and Next and no skip.
+8. **Terms**: shown at first login only, after the guide. Agree to the terms and the
    data-privacy consent to continue.
-7. **Home**: see the patients you are linked to, your latest requests
+9. **Home**: see the patients you are linked to, your latest requests
    and their status, and a big "Request a lab result" button. If you
    are not linked to anyone yet, it says you are waiting for the records
    office.
-8. **New request**: choose the patient (if there is more than one),
+10. **New request**: choose the patient (if there is more than one),
    enter the lab test and its date, pick the purpose, and submit.
-9. **My requests**: each request with its code (REQ-0001) and status. A
+11. **My requests**: each request with its code (REQ-0001) and status. A
    declined request shows the reason, and a released one has "View".
-10. **Document view**: the official PDF with a Download button.
+12. **Document view**: the official PDF with a Download button.
 
 **Records office (desktop)**
 
-11. **Request queue**: all requests, newest first, filterable by status.
-12. **Review request**: see who asked and for which patient, then
+13. **Request queue**: all requests, newest first, filterable by status.
+14. **Review request**: see who asked and for which patient, then
     either decline (a reason is required) or approve and attach the PDF.
     Attaching it releases the result.
-13. **Link accounts**: accounts not yet linked to anyone. Enter a
+15. **Link accounts**: accounts not yet linked to anyone. Enter a
     hospital number, choose self or caregiver, and link.
 
 Admins log in on a separate staff page, reached only by typing
@@ -89,7 +93,8 @@ anywhere. Admins are set by hand in the Supabase dashboard.
 
 - **profiles**: id (the login account), email, full_name, phone,
   birthdate, hospital_no (optional hint for linking), role (patient,
-  caregiver or admin), terms_accepted_at, created_at.
+  caregiver or admin), onboarded_at, terms_accepted_at,
+  privacy_consent_at, created_at.
   - Read: your own row. Admins read all.
   - Write: created automatically at sign-up, and never as admin. You may
     update only your own name and terms date. Only admins can change
@@ -175,7 +180,6 @@ On the LIVE URL:
   prescription copy, discharge summary, medical abstract)
 - A separate records list or timeline screen (released results open
   from My requests)
-- The loading screen, the 3-step guide and the splash animation
 - ID photo upload and OCR
 - Caregivers linking themselves, in-app consent forms, permission
   toggles

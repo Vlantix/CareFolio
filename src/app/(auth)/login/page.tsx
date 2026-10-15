@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { notice } = await searchParams;
 
   return (
-    <div className="cf-enter flex min-h-full flex-1 flex-wrap">
+    <div className="flex min-h-full flex-1 flex-wrap">
       <BrandPanel>
         <p className="max-w-[520px] font-heading text-5xl leading-[1.05] font-bold tracking-[-0.03em]">
           Every record. One folder. Any doctor.

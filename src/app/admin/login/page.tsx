@@ -16,7 +16,7 @@ export default async function StaffLoginPage({ searchParams }: PageProps<"/admin
   const { failed, idle } = await searchParams;
 
   return (
-    <main className="cf-enter flex min-h-full flex-1 flex-col items-center justify-center bg-navy px-4 py-12 sm:px-6">
+    <main className="flex min-h-full flex-1 flex-col items-center justify-center bg-navy px-4 py-12 sm:px-6">
       <div className="flex w-full max-w-[440px] flex-col gap-[22px] rounded-[24px] bg-card p-6 sm:p-9">
         <div className="flex items-center gap-3">
           <Image

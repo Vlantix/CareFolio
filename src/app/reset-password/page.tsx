@@ -17,7 +17,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps<"/re
   const recovering = amr.some((e) => typeof e === "object" && e.method === "recovery");
 
   return (
-    <main className="cf-enter mx-auto flex w-full max-w-[420px] flex-1 flex-col gap-7 px-6 pt-6 pb-8 lg:pt-14">
+    <main className="mx-auto flex w-full max-w-[420px] flex-1 flex-col gap-7 px-6 pt-6 pb-8 lg:pt-14">
       <BackButton href="/login" label="Back to log in" />
       <Logo size="lg" />
       <div className="flex flex-col gap-2">

@@ -16,7 +16,7 @@ const STEPS = [
 // design/MSignup.html (mobile) and design/DSignup.html (desktop).
 export default function SignupPage() {
   return (
-    <div className="cf-enter flex min-h-full flex-1 flex-wrap">
+    <div className="flex min-h-full flex-1 flex-wrap">
       <BrandPanel>
         <p className="font-heading text-[42px] leading-[1.08] font-bold tracking-[-0.03em]">
           Set up a folder for the person you care for.

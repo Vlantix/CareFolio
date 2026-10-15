@@ -49,7 +49,7 @@ export default async function SessionsPage() {
   const others = sessions.filter((s) => s.id !== current).length;
 
   return (
-    <main className="cf-enter flex flex-col gap-4 px-5 pt-5 pb-6 md:max-w-3xl md:gap-6 md:px-10 md:py-8">
+    <main className="flex flex-col gap-4 px-5 pt-5 pb-6 md:max-w-3xl md:gap-6 md:px-10 md:py-8">
       <PageHeader title="Devices" backHref="/home" backLabel="Back to home" />
       <p className="text-[15px] text-muted-foreground">
         Where your account is logged in right now. If you don&apos;t recognise a

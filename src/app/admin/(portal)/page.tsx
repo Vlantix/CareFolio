@@ -7,7 +7,7 @@ export default async function AdminHome() {
   const profile = await requireAdmin();
 
   return (
-    <main className="cf-enter flex flex-col gap-6 px-5 py-6 md:px-10 md:py-8">
+    <main className="flex flex-col gap-6 px-5 py-6 md:px-10 md:py-8">
       <div className="flex flex-col gap-1">
         <span className="text-sm text-muted-foreground">Records office</span>
         <h1 className="font-heading text-[30px] font-bold tracking-[-0.02em]">

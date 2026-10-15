@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
+import { Splash } from "@/components/splash";
+import { SPLASH_SEEN_KEY } from "@/lib/splash";
 
 // Body text. Exposed as a CSS variable that globals.css turns into font-sans.
 const figtree = Figtree({
@@ -31,8 +33,23 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${figtree.variable} ${schibsted.variable} h-full antialiased`}
+      // The script below may add a class before React loads; that's expected.
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        {/* Runs before the first paint: if the splash was already shown in
+            this browser session, hide it so it never flashes. Fixed text,
+            no user input. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem("${SPLASH_SEEN_KEY}"))document.documentElement.classList.add("cf-splash-seen")}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Splash />
+      </body>
     </html>
   );
 }

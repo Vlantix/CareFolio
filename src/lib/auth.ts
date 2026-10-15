@@ -10,6 +10,7 @@ export type Profile = {
   full_name: string;
   role: "patient" | "caregiver" | "admin";
   terms_accepted_at: string | null;
+  onboarded_at: string | null;
 };
 
 /**
@@ -42,7 +43,7 @@ export const getAuthState = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, terms_accepted_at")
+    .select("id, email, full_name, role, terms_accepted_at, onboarded_at")
     .eq("id", userId)
     .maybeSingle<Profile>();
 
@@ -60,6 +61,7 @@ export async function requireMember() {
   if (!mfa) redirect("/verify");
   if (!profile) throw new Error("Profile missing — has supabase/sql/002-profiles.sql been run?");
   if (profile.role === "admin") redirect("/admin");
+  if (!profile.onboarded_at) redirect("/welcome");
   if (!profile.terms_accepted_at) redirect("/terms");
   return profile;
 }
@@ -72,4 +74,13 @@ export async function requireAdmin() {
   const { mfa, profile } = await getAuthState();
   if (!mfa || profile?.role !== "admin") notFound();
   return profile;
+}
+
+/** Where someone belongs after logging in, given how far setup got. */
+export function homeFor(profile: Profile | null) {
+  if (!profile) return "/login";
+  if (profile.role === "admin") return "/admin";
+  if (!profile.onboarded_at) return "/welcome";
+  if (!profile.terms_accepted_at) return "/terms";
+  return "/home";
 }

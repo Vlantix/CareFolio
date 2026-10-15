@@ -11,14 +11,13 @@ export async function acceptTerms(_prev: TermsState, form: FormData): Promise<Te
     return { error: "Tick both boxes to continue." };
   }
   const { userId, mfa } = await getAuthState();
-  if (!userId || !mfa) redirect("/login");
+  if (!userId) redirect("/login");
+  if (!mfa) redirect("/verify");
 
+  // Saves terms_accepted_at AND privacy_consent_at, and writes the
+  // 'terms.accepted' audit row — all in one database function.
   const supabase = await createClient();
-  // RLS only lets you update your own row.
-  const { error } = await supabase
-    .from("profiles")
-    .update({ terms_accepted_at: new Date().toISOString() })
-    .eq("id", userId);
+  const { error } = await supabase.rpc("accept_terms");
   if (error) return { error: "We couldn't save that. Please try again." };
 
   redirect("/home");

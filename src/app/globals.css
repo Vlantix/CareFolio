@@ -12,6 +12,7 @@
   --card-foreground: #10292c;
   --muted-foreground: #4b6164; /* secondary text */
   --body-text: #2a4346; /* long reading text, e.g. the terms */
+  --disabled-text: #8fa3a5;
 
   /* Brand */
   --primary: #0b6e69; /* teal: main buttons and links */
@@ -21,6 +22,11 @@
   --primary-soft: #e3f1ef; /* teal tint behind info boxes */
   --primary-deep: #0b4a46; /* text on --primary-soft */
   --navy: #0e293c; /* the logo background */
+  --navy-track: #1e3d52; /* splash progress track */
+  --splash-teal: #2bb3a6; /* splash glow and bar */
+  --splash-tag: #b9d3d6; /* splash tagline */
+  --pulse: #3fc1b5; /* loading pulse */
+  --illustration-border: #c9dedb;
 
   /* Lines */
   --border: #d4dfdd; /* card and container borders */
@@ -33,6 +39,7 @@
   --attention: #fdf0e1;
   --attention-foreground: #8a4209;
   --attention-icon: #a9520f; /* orange icons on --attention */
+  --attention-ring: #f6d2b0; /* spinner track */
 
   /* Other status colours */
   --info: #e8eef7;
@@ -60,6 +67,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-muted-foreground: var(--muted-foreground);
   --color-body-text: var(--body-text);
+  --color-disabled-text: var(--disabled-text);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
@@ -67,6 +75,11 @@
   --color-primary-soft: var(--primary-soft);
   --color-primary-deep: var(--primary-deep);
   --color-navy: var(--navy);
+  --color-navy-track: var(--navy-track);
+  --color-splash-teal: var(--splash-teal);
+  --color-splash-tag: var(--splash-tag);
+  --color-pulse: var(--pulse);
+  --color-illustration-border: var(--illustration-border);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-divider: var(--divider);
@@ -75,6 +88,7 @@
   --color-attention: var(--attention);
   --color-attention-foreground: var(--attention-foreground);
   --color-attention-icon: var(--attention-icon);
+  --color-attention-ring: var(--attention-ring);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-danger: var(--danger);
@@ -115,7 +129,8 @@
   }
 }
 
-/* Every screen enters with a 0.4s fade + 10px rise (design/README.md). */
+/* Every screen enters with a 0.4s fade + 10px rise (design/README.md).
+   Applied once per page by src/app/template.tsx. */
 @keyframes cf-enter {
   from {
     opacity: 0;
@@ -133,4 +148,52 @@
   .cf-enter {
     animation: none;
   }
+}
+
+/* Splash (design/Splash.html, DSplash.html). CSS keyframes only. */
+@keyframes cf-mark-in {
+  0% { opacity: 0; transform: scale(0.55) rotate(-120deg); }
+  60% { opacity: 1; transform: scale(1.08) rotate(8deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes cf-glow {
+  0% { transform: scale(0.9); opacity: 0; }
+  40% { opacity: 0.55; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes cf-word-in {
+  from { clip-path: inset(0 100% 0 0); opacity: 0.2; }
+  to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+@keyframes cf-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cf-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes cf-fade-out {
+  to { opacity: 0; visibility: hidden; }
+}
+.cf-mark { animation: cf-mark-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cf-glow { animation: cf-glow 2.4s ease-out 0.7s infinite; }
+.cf-word { animation: cf-word-in 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.7s both; }
+.cf-tag { animation: cf-rise 0.6s ease-out 1.3s both; }
+.cf-bar { animation: cf-fill 1.6s cubic-bezier(0.4, 0, 0.2, 1) 1.4s both; }
+/* Seen it already this browser session? Never show it (set in layout.tsx
+   before the page paints, so there is no flash). */
+.cf-splash-seen .cf-splash { display: none; }
+
+/* Loading screen (design/Loading.html) */
+@keyframes cf-spin { to { transform: rotate(360deg); } }
+@keyframes cf-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.12); opacity: 0.15; }
+}
+.cf-spin { animation: cf-spin 1s linear infinite; }
+.cf-pulse { animation: cf-pulse 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-mark, .cf-glow, .cf-word, .cf-tag, .cf-bar, .cf-spin, .cf-pulse { animation: none; }
 }
