@@ -76,3 +76,30 @@ English, and wait for the team to agree.
 - `src/components/ui/` — the UI building blocks
 - `src/lib/supabase/` — the database clients, with comments explaining
   which to use where
+
+## CareFolio — project notes
+
+What we are building is in `docs/SPEC.md`; the approved screens are in
+`design/` (one HTML file per screen, see `design/README.md`).
+
+- **Look:** colours, radii and fonts are tokens in `src/app/globals.css`
+  — use the token classes (`bg-primary`, `text-muted-foreground`,
+  `rounded-panel`…), never raw hex values in pages. Headings use
+  `font-heading` (Schibsted Grotesk), body text is Figtree. Light mode
+  only. Touch targets at least 44px, real `<button>` and `<label>`
+  elements, WCAG AA contrast, mobile first from 360px.
+- **Logo:** always the `Logo` component (official mark image + the word
+  "carefolio" as live text). Never redraw it.
+- **Building blocks:** `src/components/ui/` — Button, InputField, Card,
+  StatusChip, PageHeader, BottomNav (mobile), Sidebar (desktop), Logo.
+- **Records rule:** patients and caregivers can only request, view and
+  download records. They never upload or edit them. Only admins change
+  records.
+- **Audit:** every action that touches patient data writes a row to
+  `audit_logs` through the database function, never directly.
+- **No service-role key.** Data users must not reach is protected with
+  security definer functions and admin-only RLS policies instead.
+- **Before saying a ticket is done:** run `npm run build`, then do a UI
+  check — for every page built, open its `design/*.html` file, compare
+  section by section at 390px and 1280px wide, list the differences and
+  fix them.

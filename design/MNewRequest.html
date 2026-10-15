@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CareFolio — New document request</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Schibsted+Grotesk:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B6E69}a:hover{color:#08524E}
+@keyframes cf-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.cf-enter{animation:cf-enter .4s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion: reduce){.cf-enter{animation:none}}
+</style>
+</helmet>
+<div class="cf-enter" style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6F5; font-family: 'Figtree', system-ui, sans-serif; color: #10292C; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Home.dc.html" aria-label="Back to home" style="width: 44px; height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #D4DFDD; display: flex; align-items: center; justify-content: center; color: #10292C"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+    <h1 style="margin: 0; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 22px">Request a document</h1>
+  </div>
+  <div style="padding: 12px 14px; border-radius: 12px; background: #E3F1EF; font-size: 14px; color: #0B4A46">For <strong>Ramon Santos</strong> · you're an authorized caregiver</div>
+  <fieldset style="border: 0; margin: 0; padding: 0">
+    <legend style="font-size: 14px; font-weight: 600; margin-bottom: 8px">Document type</legend>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <label style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid #0B6E69; background: #0B6E69; color: #FFFFFF; font-size: 14px; font-weight: 600"><input type="radio" name="doc" checked style="position: absolute; opacity: 0; width: 1px; height: 1px">Lab result</label>
+      <label style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #C5D3D1; background: #FFFFFF; font-size: 14px; font-weight: 600"><input type="radio" name="doc" style="position: absolute; opacity: 0; width: 1px; height: 1px">Medical certificate</label>
+      <label style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #C5D3D1; background: #FFFFFF; font-size: 14px; font-weight: 600"><input type="radio" name="doc" style="position: absolute; opacity: 0; width: 1px; height: 1px">Medical abstract</label>
+      <label style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #C5D3D1; background: #FFFFFF; font-size: 14px; font-weight: 600"><input type="radio" name="doc" style="position: absolute; opacity: 0; width: 1px; height: 1px">Prescription copy</label>
+      <label style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #C5D3D1; background: #FFFFFF; font-size: 14px; font-weight: 600"><input type="radio" name="doc" style="position: absolute; opacity: 0; width: 1px; height: 1px">Discharge summary</label>
+    </div>
+  </fieldset>
+  <div style="display: flex; flex-direction: column; gap: 5px"><label for="nr-test" style="font-size: 14px; font-weight: 600">Which test or date?</label><input id="nr-test" value="HbA1c — Sept 2026" style="height: 48px; box-sizing: border-box; border: 1.5px solid #C5D3D1; border-radius: 12px; padding: 0 14px; font: inherit; font-size: 16px; background: #FFFFFF"></div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <div style="display: flex; flex-direction: column; gap: 5px"><label for="nr-fac" style="font-size: 14px; font-weight: 600">Facility</label><select id="nr-fac" style="height: 48px; min-width: 0; border: 1.5px solid #C5D3D1; border-radius: 12px; padding: 0 10px; font: inherit; font-size: 15px; background: #FFFFFF"><option>[Partner facility]</option></select></div>
+    <div style="display: flex; flex-direction: column; gap: 5px"><label for="nr-pur" style="font-size: 14px; font-weight: 600">Purpose</label><select id="nr-pur" style="height: 48px; min-width: 0; border: 1.5px solid #C5D3D1; border-radius: 12px; padding: 0 10px; font: inherit; font-size: 15px; background: #FFFFFF"><option>Follow-up check-up</option><option>Specialist referral</option><option>Work / school</option><option>Insurance</option></select></div>
+  </div>
+  <label style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid #D4DFDD">
+    <span style="flex: 1; display: flex; flex-direction: column"><strong style="font-size: 15px">Mark as urgent</strong><span style="font-size: 13px; color: #4B6164">Same-day review — a reason is required</span></span>
+    <input type="checkbox" style="width: 22px; height: 22px; accent-color: #C2611A">
+  </label>
+  <div style="display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 14px; background: #FDF0E1; color: #8A4209">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+    <span style="font-size: 14px"><strong>Expected release: Oct 15–19</strong><br>1–3 working days after submission</span>
+  </div>
+  <div style="flex-grow: 1"></div>
+  <a href="MRequests.dc.html" style="display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 14px; background: #0B6E69; color: #FFFFFF; font-weight: 600; font-size: 17px; text-decoration: none">Submit request</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

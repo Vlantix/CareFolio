@@ -1,44 +1,53 @@
 @import "tailwindcss";
 
-/* Design tokens. Change these to re-skin the whole app at once —
-   every component below reads from them. */
+/* CareFolio design tokens, taken from the approved screens in design/.
+   Change a value here to re-skin the whole app at once — every
+   component reads from these. The designs are light-only, so there is
+   deliberately no dark mode. */
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
+  /* Surfaces and text */
+  --background: #f3f6f5; /* page background */
+  --foreground: #10292c; /* ink: headings and body text */
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --primary: #1a1a1a;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #1a1a1a;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #0a0a0a;
-  --radius: 0.625rem;
-}
+  --card-foreground: #10292c;
+  --muted-foreground: #4b6164; /* secondary text */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    --card: #141414;
-    --card-foreground: #fafafa;
-    --primary: #fafafa;
-    --primary-foreground: #1a1a1a;
-    --secondary: #27272a;
-    --secondary-foreground: #fafafa;
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa;
-    --destructive: #ef4444;
-    --destructive-foreground: #fafafa;
-    --border: #27272a;
-    --input: #3f3f46;
-    --ring: #d4d4d8;
-  }
+  /* Brand */
+  --primary: #0b6e69; /* teal: main buttons and links */
+  --primary-hover: #08524e;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e3f1ef; /* teal tint behind info boxes */
+  --primary-deep: #0b4a46; /* text on --primary-soft */
+  --navy: #0e293c; /* the logo background */
+
+  /* Lines */
+  --border: #d4dfdd; /* card and container borders */
+  --input: #c5d3d1; /* form field borders */
+  --divider: #e6edec; /* lines between list rows */
+  --ring: #0b6e69;
+
+  /* Attention (orange): status and things that need a look */
+  --accent: #c2611a;
+  --attention: #fdf0e1;
+  --attention-foreground: #8a4209;
+
+  /* Other status colours */
+  --info: #e8eef7;
+  --info-foreground: #24467a;
+  --danger: #fde8e1;
+  --danger-foreground: #8a2e0f;
+
+  /* Desktop sidebar */
+  --sidebar: #10292c;
+  --sidebar-active: #1e3d41;
+  --sidebar-foreground: #c6d8d6;
+
+  /* Kept for the starter components in src/components/ui */
+  --secondary: var(--primary-soft);
+  --secondary-foreground: var(--primary-deep);
+  --destructive: var(--danger-foreground);
+  --destructive-foreground: #ffffff;
+  --radius: 12px;
 }
 
 @theme inline {
@@ -46,24 +55,76 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-deep: var(--primary-deep);
+  --color-navy: var(--navy);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-divider: var(--divider);
   --color-ring: var(--ring);
-  --radius-base: var(--radius);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-accent: var(--accent);
+  --color-attention: var(--attention);
+  --color-attention-foreground: var(--attention-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Radii used in the designs: fields 12, big buttons 14,
+     list cards 16, section cards 22. */
+  --radius-field: 12px;
+  --radius-button: 14px;
+  --radius-tile: 16px;
+  --radius-panel: 22px;
+
+  /* Fonts are loaded in layout.tsx with next/font. */
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-heading: var(--font-schibsted), system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+/* In the base layer so that Tailwind classes on an element still win. */
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  a {
+    color: var(--primary);
+  }
+  a:hover {
+    color: var(--primary-hover);
+  }
+}
+
+/* Every screen enters with a 0.4s fade + 10px rise (design/README.md). */
+@keyframes cf-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cf-enter {
+  animation: cf-enter 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-enter {
+    animation: none;
+  }
 }

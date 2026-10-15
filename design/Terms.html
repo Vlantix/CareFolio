@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CareFolio — Terms and conditions (mobile)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Schibsted+Grotesk:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B6E69}a:hover{color:#08524E}
+@keyframes cf-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.cf-enter{animation:cf-enter .4s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion: reduce){.cf-enter{animation:none}}
+</style>
+</helmet>
+<div class="cf-enter" style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6F5; font-family: 'Figtree', system-ui, sans-serif; color: #10292C; padding: 24px 24px 28px; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #4B6164"><span>Final step</span><span>4 of 4</span></div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+      <span style="height: 6px; border-radius: 999px; background: #0B6E69"></span><span style="height: 6px; border-radius: 999px; background: #0B6E69"></span><span style="height: 6px; border-radius: 999px; background: #0B6E69"></span><span style="height: 6px; border-radius: 999px; background: #0B6E69"></span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 26px; line-height: 1.15; letter-spacing: -0.02em">Terms &amp; privacy</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #4B6164">Read and accept to finish creating your account.</p>
+  </div>
+  <div tabindex="0" aria-label="Terms and conditions text" style="height: 330px; overflow-y: auto; background: #FFFFFF; border: 1px solid #D4DFDD; border-radius: 16px; padding: 16px 18px; box-sizing: border-box; font-size: 14px; line-height: 1.55; color: #2A4346; display: flex; flex-direction: column; gap: 14px">
+    <section><h2 style="margin: 0 0 4px; font-size: 15px; color: #10292C">1. What CareFolio does</h2><p style="margin: 0">Lets you request, view, download and share official records from partner facilities. Only the facility's authorized staff can add or change records.</p></section>
+    <section><h2 style="margin: 0 0 4px; font-size: 15px; color: #10292C">2. Your health data</h2><p style="margin: 0">Health information is sensitive personal information under the Data Privacy Act of 2012 (RA 10173). We collect only what your summary needs and encrypt it in transit and at rest.</p></section>
+    <section><h2 style="margin: 0 0 4px; font-size: 15px; color: #10292C">3. Email verification</h2><p style="margin: 0">Every login is confirmed with a one-time 6-digit code sent to your email. Never share this code — CareFolio staff will never ask for it.</p></section>
+    <section><h2 style="margin: 0 0 4px; font-size: 15px; color: #10292C">4. Sharing</h2><p style="margin: 0">QR links are read-only, expire automatically and can be revoked. Every access is logged. Documents open in a protected view that blurs when you leave the app or try to take a screenshot, and is watermarked with your name.</p></section>
+    <section><h2 style="margin: 0 0 4px; font-size: 15px; color: #10292C">5. Not medical advice</h2><p style="margin: 0">CareFolio does not diagnose or interpret results. Requests take 1–3 working days; it is not for emergencies.</p></section>
+    <section><h2 style="margin: 0 0 4px; font-size: 15px; color: #10292C">6. Your rights</h2><p style="margin: 0">You may access, correct or delete your data. Contact our Data Protection Officer at [DPO email].</p></section>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <label style="display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.45; cursor: pointer">
+      <input type="checkbox" checked="{{agreeTerms}}" onChange="{{toggleTerms}}" style="width: 22px; height: 22px; margin: 0; flex: none; accent-color: #0B6E69">
+      <span>I have read and agree to the <a href="#">Terms of Use</a>.</span>
+    </label>
+    <label style="display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.45; cursor: pointer">
+      <input type="checkbox" checked="{{agreeData}}" onChange="{{toggleData}}" style="width: 22px; height: 22px; margin: 0; flex: none; accent-color: #0B6E69">
+      <span>I consent to the processing of my health information as described in the <a href="#">Privacy Notice</a>.</span>
+    </label>
+  </div>
+  <div style="flex-grow: 1"></div>
+  <sc-if value="{{canFinish}}" hint-placeholder-val="{{ true }}">
+    <a href="Home.dc.html" style="display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 14px; background: #0B6E69; color: #FFFFFF; font-weight: 600; font-size: 17px; text-decoration: none">Agree &amp; finish setup</a>
+  </sc-if>
+  <sc-if value="{{cannotFinish}}" hint-placeholder-val="{{ false }}">
+    <button type="button" disabled style="height: 54px; border-radius: 14px; border: 0; background: #C5D3D1; color: #4B6164; font: inherit; font-weight: 600; font-size: 17px">Agree &amp; finish setup</button>
+  </sc-if>
+  <a href="Main.dc.html" style="text-align: center; font-weight: 600; font-size: 14px; color: #4B6164">Decline and log out</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { terms: false, data: false };
+  }
+  renderVals() {
+    const ok = this.state.terms && this.state.data;
+    return {
+      agreeTerms: this.state.terms,
+      agreeData: this.state.data,
+      toggleTerms: () => this.setState({ terms: !this.state.terms }),
+      toggleData: () => this.setState({ data: !this.state.data }),
+      canFinish: ok,
+      cannotFinish: !ok
+    };
+  }
+}
+</script>
+</body>
+</html>

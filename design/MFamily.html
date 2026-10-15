@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CareFolio — Family access</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Schibsted+Grotesk:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B6E69}a:hover{color:#08524E}
+@keyframes cf-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.cf-enter{animation:cf-enter .4s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion: reduce){.cf-enter{animation:none}}
+</style>
+</helmet>
+<div class="cf-enter" style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6F5; font-family: 'Figtree', system-ui, sans-serif; color: #10292C; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Home.dc.html" aria-label="Back to home" style="width: 44px; height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #D4DFDD; display: flex; align-items: center; justify-content: center; color: #10292C"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+    <h1 style="margin: 0; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 22px">Family access</h1>
+  </div>
+  <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #4B6164">Caregivers can request and view records for Ramon only with his recorded consent.</p>
+  <h2 style="margin: 0; font-size: 13px; font-weight: 700; color: #4B6164; letter-spacing: 0.05em; text-transform: uppercase">People with access</h2>
+  <article style="display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 16px; background: #FFFFFF; border: 1px solid #D4DFDD">
+    <span style="width: 44px; height: 44px; border-radius: 50%; background: #10292C; color: #FFFFFF; font-weight: 700; display: flex; align-items: center; justify-content: center">RS</span>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><strong>Ramon Santos</strong><span style="font-size: 13px; color: #4B6164">Patient · account owner</span></span>
+  </article>
+  <article style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: #FFFFFF; border: 1px solid #D4DFDD">
+    <div style="display: flex; gap: 12px; align-items: center">
+      <span style="width: 44px; height: 44px; border-radius: 50%; background: #0B6E69; color: #FFFFFF; font-weight: 700; display: flex; align-items: center; justify-content: center">MS</span>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><strong>Maria Santos (you)</strong><span style="font-size: 13px; color: #4B6164">Daughter · consent signed Oct 1, 2026</span></span>
+    </div>
+    <div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="padding: 4px 10px; border-radius: 999px; background: #E3F1EF; color: #0B4A46; font-size: 12px; font-weight: 700">Request</span><span style="padding: 4px 10px; border-radius: 999px; background: #E3F1EF; color: #0B4A46; font-size: 12px; font-weight: 700">View</span><span style="padding: 4px 10px; border-radius: 999px; background: #E3F1EF; color: #0B4A46; font-size: 12px; font-weight: 700">Share</span></div>
+  </article>
+  <article style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: #FFFFFF; border: 1px solid #D4DFDD">
+    <div style="display: flex; gap: 12px; align-items: center">
+      <span style="width: 44px; height: 44px; border-radius: 50%; background: #E8EEF7; color: #24467A; font-weight: 700; display: flex; align-items: center; justify-content: center">JS</span>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><strong>Jose Santos</strong><span style="font-size: 13px; color: #4B6164">Son · invite sent, waiting for patient consent</span></span>
+    </div>
+    <div style="display: flex; gap: 8px"><button type="button" style="flex: 1; height: 44px; border-radius: 10px; border: 1.5px solid #C5D3D1; background: #FFFFFF; font: inherit; font-weight: 600">Resend</button><button type="button" style="flex: 1; height: 44px; border-radius: 10px; border: 1.5px solid #B4540F; background: #FFFFFF; color: #8A4209; font: inherit; font-weight: 700">Cancel invite</button></div>
+  </article>
+  <div style="flex-grow: 1"></div>
+  <a href="#" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; border-radius: 14px; background: #0B6E69; color: #FFFFFF; font-weight: 600; font-size: 17px; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Invite a caregiver</a>
+  <a href="MReminders.dc.html" style="text-align: center; font-weight: 600; font-size: 15px">Reminder settings</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
