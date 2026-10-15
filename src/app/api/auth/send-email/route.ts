@@ -82,14 +82,10 @@ export async function POST(request: NextRequest) {
         result = await sendCodeEmail(user.email, data.token);
         break;
       case "recovery":
-        result = await sendLinkEmail(
-          user.email,
-          "Reset your CareFolio password",
-          "Reset your password",
-          "Someone asked to reset your CareFolio password. If it was you, choose a new one:",
-          verifyLink(data.token_hash, "recovery"),
-          "Choose a new password",
-        );
+        // Send the raw OTP as a 6-digit code (same as login codes).
+        // The user enters it on /reset-password; the server verifies
+        // with supabase.auth.verifyOtp({ type: 'recovery' }).
+        result = await sendCodeEmail(user.email, data.token);
         break;
       case "email_change":
         result = await sendLinkEmail(
