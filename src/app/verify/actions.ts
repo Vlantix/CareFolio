@@ -35,7 +35,11 @@ export async function sendCode(): Promise<SendState> {
   // Our limits (1 a minute, 5 an hour), checked and recorded in the
   // database. The code itself is never stored or logged.
   const { data: wait, error: limitError } = await login.supabase.rpc("otp_send_check");
-  if (limitError) return { error: "We couldn't send the code. Please try again in a minute." };
+  if (limitError) {
+    // Visible in Vercel → Logs (never the code itself).
+    console.error("sendCode: send-limit check failed:", limitError.code, limitError.message);
+    return { error: "We couldn't send the code. Please try again in a minute." };
+  }
   if (wait > 0) {
     return {
       error: `To keep your account safe, codes are limited. You can ask for a new one in ${waitText(wait)}.`,
@@ -52,7 +56,15 @@ export async function sendCode(): Promise<SendState> {
     if (error.status === 429 || error.code?.includes("rate_limit")) {
       return { error: "A code was sent a moment ago. Wait a minute before asking for another.", waitSeconds: 60 };
     }
-    return { error: "We couldn't send the code. Please try again in a minute." };
+    console.error("sendCode: Supabase could not send the email:", error.status, error.code, error.message);
+    // A hook error means our email sender (Gmail / Resend) refused — the
+    // reason is logged by /api/auth/send-email in Vercel → Logs.
+    const hook = /hook/i.test(error.message);
+    return {
+      error: hook
+        ? "Our email service couldn't send the code. Please try again in a minute — if it keeps happening, tell the records office."
+        : "We couldn't send the code. Please try again in a minute.",
+    };
   }
   return { sent: true };
 }
