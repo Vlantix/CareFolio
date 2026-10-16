@@ -27,7 +27,7 @@ Next.js app — no Docker, no local database.
 ### 1. Install
 
 ```bash
-git clone https://github.com/Vlantix/hackathon.git
+git clone https://github.com/Vlantix/CareFolio.git
 cd hackathon
 npm install
 ```
