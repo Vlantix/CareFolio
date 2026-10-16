@@ -58,7 +58,7 @@ export default function LandingPage() {
 
         {/* ── Hero ────────────────────────────────────────────────────────── */}
         <section className="bg-navy">
-          <div className="mx-auto max-w-5xl px-5 py-16 lg:py-24 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          <div className="mx-auto max-w-5xl px-5 py-16 lg:py-24 grid lg:grid-cols-[1.1fr_0.9fr] items-center gap-10 lg:gap-12">
             {/* Text */}
             <div className="flex-1 flex flex-col gap-6 text-center lg:text-left">
               <span className="inline-flex self-center lg:self-start px-3 py-1.5 rounded-full bg-navy-track text-splash-tag text-[13px] font-semibold tracking-wide">
@@ -84,252 +84,182 @@ export default function LandingPage() {
 
               {/* Trust row */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 justify-center lg:justify-start text-[13px] text-splash-tag/70">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-sm bg-navy-track inline-block" aria-hidden="true" />
-                  Pilot partner: PHINMA Health Partners
-                </span>
+                <span>Pilot partner: PHINMA Health Partners</span>
                 <span aria-hidden="true">·</span>
                 <span>Two-step login</span>
               </div>
             </div>
 
             {/* Phone mockup */}
-            <div className="flex-none flex justify-center" aria-hidden="true">
-              <div
-                style={{
-                  background: "#0a1e2e",
-                  borderRadius: "38px",
-                  padding: "10px 10px 16px",
-                  width: "226px",
-                  boxShadow:
-                    "0 28px 72px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)",
-                }}
-              >
-                {/* Camera pill */}
+            <div className="flex justify-center" aria-hidden="true">
+              <div style={{ position: "relative" }}>
+                {/* Ambient teal glow */}
                 <div
                   style={{
+                    position: "absolute",
+                    inset: "-40px",
+                    background: "radial-gradient(ellipse at center, rgba(43,181,160,0.18) 0%, transparent 68%)",
+                    pointerEvents: "none",
+                    zIndex: 0,
+                  }}
+                />
+                {/* Phone bezel */}
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 1,
+                    background: "#0b1a24",
+                    borderRadius: "48px",
+                    padding: "12px",
+                    width: "clamp(260px, 24vw, 340px)",
+                    aspectRatio: "9 / 19.5",
+                    boxShadow:
+                      "0 40px 80px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(255,255,255,0.06)",
                     display: "flex",
-                    justifyContent: "center",
-                    marginBottom: "7px",
+                    flexDirection: "column",
                   }}
                 >
-                  <div
-                    style={{
-                      width: "54px",
-                      height: "6px",
-                      background: "#061320",
-                      borderRadius: "4px",
-                    }}
-                  />
-                </div>
-                {/* Screen */}
-                <div
-                  style={{
-                    background: "#f3f6f5",
-                    borderRadius: "30px",
-                    overflow: "hidden",
-                  }}
-                >
-                  {/* Mini header */}
-                  <div
-                    style={{
-                      background: "#0e293c",
-                      padding: "9px 14px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        color: "#b9d3d6",
-                        fontFamily: "system-ui",
-                        letterSpacing: "0.01em",
-                      }}
-                    >
-                      CareFolio
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        color: "#7da8b0",
-                        fontFamily: "system-ui",
-                      }}
-                    >
-                      Hi, Maria
-                    </span>
-                  </div>
+                  {/* Power button */}
+                  <div style={{ position: "absolute", right: "-3.5px", top: "130px", width: "3.5px", height: "70px", background: "#1a3346", borderRadius: "0 3px 3px 0" }} />
+                  {/* Volume up */}
+                  <div style={{ position: "absolute", left: "-3.5px", top: "110px", width: "3.5px", height: "44px", background: "#1a3346", borderRadius: "3px 0 0 3px" }} />
+                  {/* Volume down */}
+                  <div style={{ position: "absolute", left: "-3.5px", top: "162px", width: "3.5px", height: "44px", background: "#1a3346", borderRadius: "3px 0 0 3px" }} />
 
-                  {/* Content */}
+                  {/* Screen */}
                   <div
                     style={{
-                      padding: "14px 12px 16px",
+                      background: "#f3f6f5",
+                      borderRadius: "36px",
+                      overflow: "hidden",
+                      flex: 1,
                       display: "flex",
                       flexDirection: "column",
-                      gap: "10px",
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: "9px",
-                        fontWeight: 700,
-                        color: "#4b6164",
-                        fontFamily: "system-ui",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Lab request
+                    {/* Dynamic Island */}
+                    <div style={{ background: "#f3f6f5", display: "flex", justifyContent: "center", paddingTop: "12px", paddingBottom: "4px" }}>
+                      <div style={{ width: "88px", height: "26px", background: "#000", borderRadius: "99px" }} />
                     </div>
 
-                    {/* Request card */}
-                    <div
-                      style={{
-                        background: "#ffffff",
-                        borderRadius: "16px",
-                        padding: "12px",
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.07)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          color: "#10292c",
-                          fontFamily: "system-ui",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        HbA1c (Diabetes)
+                    {/* Status bar */}
+                    <div style={{ background: "#0e293c", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 16px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "white", fontFamily: "system-ui" }}>9:41</span>
+                      <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                        <svg width="16" height="11" viewBox="0 0 16 11" fill="white">
+                          <rect x="0" y="8" width="2.5" height="3" rx="0.5" />
+                          <rect x="3.5" y="5.5" width="2.5" height="5.5" rx="0.5" />
+                          <rect x="7" y="3" width="2.5" height="8" rx="0.5" />
+                          <rect x="10.5" y="0" width="2.5" height="11" rx="0.5" opacity="0.3" />
+                        </svg>
+                        <svg width="15" height="11" viewBox="0 0 24 18" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                          <path d="M5 11c1.9-2.4 4.4-3.7 7-3.7s5.1 1.3 7 3.7" />
+                          <circle cx="12" cy="17" r="1.5" fill="white" stroke="none" />
+                        </svg>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1px" }}>
+                          <div style={{ width: "22px", height: "11px", border: "1.5px solid rgba(255,255,255,0.7)", borderRadius: "3px", padding: "2px", display: "flex" }}>
+                            <div style={{ width: "70%", height: "100%", background: "white", borderRadius: "1px" }} />
+                          </div>
+                          <div style={{ width: "2px", height: "5px", background: "rgba(255,255,255,0.6)", borderRadius: "1px" }} />
+                        </div>
                       </div>
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#6b8c8e",
-                          fontFamily: "system-ui",
-                          marginBottom: "11px",
-                        }}
-                      >
-                        Oct 2024 · PHINMA Hospital
+                    </div>
+
+                    {/* App header */}
+                    <div style={{ background: "#0e293c", padding: "8px 16px 10px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      <span style={{ fontSize: "15px", fontWeight: 700, color: "#b9d3d6", fontFamily: "system-ui" }}>CareFolio</span>
+                      <span style={{ fontSize: "12px", color: "#7da8b0", fontFamily: "system-ui" }}>Hi, Maria</span>
+                    </div>
+
+                    {/* Scrollable content */}
+                    <div style={{ flex: 1, overflowY: "hidden", display: "flex", flexDirection: "column", padding: "10px 10px 0" }}>
+                      {/* Toast notification */}
+                      <div style={{ background: "#1a3a4a", borderRadius: "12px", padding: "8px 12px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "7px" }}>
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#2bb5a0", flexShrink: 0 }} />
+                        <span style={{ fontSize: "11px", color: "#b9d3d6", fontFamily: "system-ui" }}>Your result is ready</span>
                       </div>
 
-                      {/* Animated status badges */}
-                      <div style={{ position: "relative", height: "22px" }}>
-                        <span
-                          className="cf-lp-sub"
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: "#eef2f2",
-                            color: "#5a7a82",
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            fontFamily: "system-ui",
-                            padding: "3px 8px",
-                            borderRadius: "20px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            whiteSpace: "nowrap",
-                            width: "fit-content",
-                          }}
-                        >
-                          Submitted
-                        </span>
-                        <span
-                          className="cf-lp-rev"
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: "#fdf0e1",
-                            color: "#8a4209",
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            fontFamily: "system-ui",
-                            padding: "3px 8px",
-                            borderRadius: "20px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            whiteSpace: "nowrap",
-                            width: "fit-content",
-                          }}
-                        >
-                          Under review
-                        </span>
-                        <span
-                          className="cf-lp-rel"
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: "#e3f1ef",
-                            color: "#0b4a46",
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            fontFamily: "system-ui",
-                            padding: "3px 8px",
-                            borderRadius: "20px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            whiteSpace: "nowrap",
-                            width: "fit-content",
-                          }}
-                        >
-                          <svg
-                            width="8"
-                            height="8"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
+                      {/* Section label */}
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: "#4b6164", fontFamily: "system-ui", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "7px" }}>
+                        Lab Requests
+                      </div>
+
+                      {/* Card 1 — HbA1c (animated status) */}
+                      <div style={{ background: "#fff", borderRadius: "14px", padding: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.07)", marginBottom: "8px" }}>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#10292c", fontFamily: "system-ui", marginBottom: "2px" }}>HbA1c (Diabetes)</div>
+                        <div style={{ fontSize: "11px", color: "#6b8c8e", fontFamily: "system-ui", marginBottom: "8px" }}>Oct 2024 · PHINMA Hospital</div>
+                        <div style={{ position: "relative", height: "22px", marginBottom: "8px" }}>
+                          <span className="cf-lp-sub" style={{ position: "absolute", inset: 0, background: "#eef2f2", color: "#5a7a82", fontSize: "10px", fontWeight: 600, fontFamily: "system-ui", padding: "3px 8px", borderRadius: "20px", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", width: "fit-content" }}>Submitted</span>
+                          <span className="cf-lp-rev" style={{ position: "absolute", inset: 0, background: "#fdf0e1", color: "#8a4209", fontSize: "10px", fontWeight: 600, fontFamily: "system-ui", padding: "3px 8px", borderRadius: "20px", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", width: "fit-content" }}>Under review</span>
+                          <span className="cf-lp-rel" style={{ position: "absolute", inset: 0, background: "#e3f1ef", color: "#0b4a46", fontSize: "10px", fontWeight: 600, fontFamily: "system-ui", padding: "3px 8px", borderRadius: "20px", display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap", width: "fit-content" }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                            Released
+                          </span>
+                        </div>
+                        <div className="cf-lp-dl" style={{ background: "#0b6e69", borderRadius: "10px", padding: "8px 10px", display: "flex", alignItems: "center", gap: "5px", justifyContent: "center" }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
                           </svg>
+                          <span style={{ fontSize: "12px", fontWeight: 700, color: "white", fontFamily: "system-ui" }}>Download official PDF</span>
+                        </div>
+                      </div>
+
+                      {/* Card 2 — Lipid Profile Processing */}
+                      <div style={{ background: "#fff", borderRadius: "14px", padding: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.07)", marginBottom: "8px" }}>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#10292c", fontFamily: "system-ui", marginBottom: "2px" }}>Lipid Profile</div>
+                        <div style={{ fontSize: "11px", color: "#6b8c8e", fontFamily: "system-ui", marginBottom: "8px" }}>Oct 2024 · PHINMA Hospital</div>
+                        <span style={{ background: "#fdf0e1", color: "#8a4209", fontSize: "11px", fontWeight: 600, fontFamily: "system-ui", padding: "3px 9px", borderRadius: "20px", display: "inline-flex", alignItems: "center" }}>Processing</span>
+                      </div>
+
+                      {/* Card 3 — CBC Released */}
+                      <div style={{ background: "#fff", borderRadius: "14px", padding: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.07)" }}>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#10292c", fontFamily: "system-ui", marginBottom: "2px" }}>CBC</div>
+                        <div style={{ fontSize: "11px", color: "#6b8c8e", fontFamily: "system-ui", marginBottom: "8px" }}>Sep 2024 · PHINMA Hospital</div>
+                        <span style={{ background: "#e3f1ef", color: "#0b4a46", fontSize: "11px", fontWeight: 600, fontFamily: "system-ui", padding: "3px 9px", borderRadius: "20px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                           Released
                         </span>
                       </div>
                     </div>
 
-                    {/* Download button — animated in */}
-                    <div
-                      className="cf-lp-dl"
-                      style={{
-                        background: "#0b6e69",
-                        borderRadius: "12px",
-                        padding: "10px 12px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <svg
-                        width="11"
-                        height="11"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          color: "white",
-                          fontFamily: "system-ui",
-                        }}
-                      >
-                        Download official PDF
-                      </span>
+                    {/* Bottom tab bar */}
+                    <div style={{ background: "white", borderTop: "1px solid #e8f0ef", padding: "10px 0 0", display: "flex", justifyContent: "space-around" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", padding: "0 8px" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b8c8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                          <polyline points="9 22 9 12 15 12 15 22" />
+                        </svg>
+                        <span style={{ fontSize: "9px", color: "#6b8c8e", fontFamily: "system-ui" }}>Home</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", padding: "0 8px" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2bb5a0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        <span style={{ fontSize: "9px", color: "#2bb5a0", fontFamily: "system-ui", fontWeight: 600 }}>Requests</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", padding: "0 8px" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b8c8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                        </svg>
+                        <span style={{ fontSize: "9px", color: "#6b8c8e", fontFamily: "system-ui" }}>Records</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", padding: "0 8px" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b8c8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        <span style={{ fontSize: "9px", color: "#6b8c8e", fontFamily: "system-ui" }}>Profile</span>
+                      </div>
+                    </div>
+
+                    {/* Home indicator */}
+                    <div style={{ background: "white", padding: "6px 0 10px", display: "flex", justifyContent: "center" }}>
+                      <div style={{ width: "110px", height: "5px", background: "#c0cece", borderRadius: "99px" }} />
                     </div>
                   </div>
                 </div>
@@ -651,6 +581,10 @@ export default function LandingPage() {
                   a: "The PDF is an official copy released by the hospital's records office — the same document you'd collect in person. Whether a specific doctor or employer accepts digital records is their call.",
                 },
                 {
+                  q: "Do I need to download an app?",
+                  a: "No. You can do everything in your browser — request records, track their status, and download the PDF. The CareFolio app is optional if you prefer push notifications and quicker access on your phone.",
+                },
+                {
                   q: "Can I request records for a family member?",
                   a: "Yes, if the records office links your account as a caregiver. Ask the records staff to set this up at your next visit.",
                 },
@@ -684,25 +618,33 @@ export default function LandingPage() {
         </section>
 
         {/* ── Final CTA ───────────────────────────────────────────────────── */}
-        <section className="bg-navy text-white px-5 py-16 flex flex-col items-center gap-5 text-center">
-          <h2 className="font-heading font-extrabold text-[32px] leading-[1.08] tracking-[-0.025em] max-w-xs">
-            Ready to skip the trip?
-          </h2>
-          <p className="text-[16px] text-splash-tag leading-relaxed max-w-sm">
-            Request your first lab result from your phone. It only takes two minutes, and it&rsquo;s free.
-          </p>
-          <Link
-            href="/signup"
-            className="h-[54px] px-10 rounded-[14px] bg-splash-teal text-navy font-bold text-[17px] inline-flex items-center justify-center hover:opacity-90 transition-opacity"
-          >
-            Request your first result — free
-          </Link>
-          <p className="text-[14px] text-splash-tag/70">
-            No credit card. No app download. Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-white underline-offset-2 hover:underline">
-              Log in
+        <section className="bg-navy text-white px-5 py-16">
+          <div className="mx-auto max-w-2xl flex flex-col items-center gap-5 text-center">
+            <h2 className="font-heading font-extrabold text-[32px] leading-[1.08] tracking-[-0.025em]">
+              Ready to skip the trip?
+            </h2>
+            <p className="text-[16px] text-splash-tag leading-relaxed max-w-[52ch]">
+              Request your first lab result from any browser or the CareFolio app. It only takes two minutes, and it&rsquo;s free.
+            </p>
+            <Link
+              href="/signup"
+              className="h-[54px] px-10 rounded-[14px] bg-splash-teal text-navy font-bold text-[17px] inline-flex items-center justify-center hover:opacity-90 transition-opacity"
+            >
+              Request your first result — free
             </Link>
-          </p>
+            <p className="text-[13px] text-splash-tag/60">
+              Prefer the app?{" "}
+              <Link href="/download" className="font-semibold text-splash-tag hover:text-white underline-offset-2 hover:underline transition-colors">
+                Download for iOS or Android
+              </Link>
+            </p>
+            <p className="text-[14px] text-splash-tag/70">
+              No credit card. Use it in your browser or get the app. Already have an account?{" "}
+              <Link href="/login" className="font-semibold text-white underline-offset-2 hover:underline">
+                Log in
+              </Link>
+            </p>
+          </div>
         </section>
 
         {/* ── Footer ──────────────────────────────────────────────────────── */}
